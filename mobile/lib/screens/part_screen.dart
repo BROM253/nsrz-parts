@@ -55,6 +55,11 @@ class _PartScreenState extends ConsumerState<PartScreen> {
           return RefreshIndicator(
             onRefresh: () => ref.refresh(partProvider(widget.id).future),
             child: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 24), children: [
+              if (p.offlineSince != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: OfflineBanner(p.offlineSince!, onRetry: () => ref.invalidate(partProvider(widget.id))),
+                ),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),

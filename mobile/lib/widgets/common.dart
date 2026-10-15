@@ -149,6 +149,28 @@ class SyncPill extends StatelessWidget {
       );
 }
 
+/// Нет связи — показаны сохранённые данные (спутниковый канал на судне может пропадать).
+class OfflineBanner extends StatelessWidget {
+  const OfflineBanner(this.since, {super.key, this.onRetry});
+  final DateTime since;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+        decoration: BoxDecoration(color: C.warningSoft, borderRadius: BorderRadius.circular(14), border: Border.all(color: C.warning)),
+        child: Row(children: [
+          const Icon(Icons.cloud_off_rounded, color: C.warning, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('Нет связи. Показаны данные от ${dateTime(since)} — остатки могли измениться.',
+                style: const TextStyle(color: C.warning, fontWeight: FontWeight.w600, fontSize: 13)),
+          ),
+          if (onRetry != null) TextButton(onPressed: onRetry, child: const Text('Повторить')),
+        ]),
+      ).animate().fadeIn(duration: 250.ms).slideY(begin: -0.3);
+}
+
 /// Заглушка загрузки с мерцанием.
 class Skeleton extends StatelessWidget {
   const Skeleton({super.key, this.height = 110, this.radius = 18});

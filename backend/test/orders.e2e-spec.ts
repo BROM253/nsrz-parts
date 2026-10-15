@@ -269,4 +269,40 @@ describe('Заказы: резерв остатков и защита от по�
       expect(res.text).toContain('История статусов');
     });
   });
+describe('Повторить заказ', () => {
+    it('позиции прошлого заказа попадают в корзину', async () => {
+      const order = await prisma.order.findFirstOrThrow({
+        where: { company: { name: 'ООО «Черноморский флот»' }, status: 'COMPLETED', items: { some: { part: { catalogNumber: 'НСРЗ-ДГ-00412' } } } },
+        include: { items: true },
+      });
+      await owner1.delete('/cart').expect(200);
+      const res = await owner1.post(`/cart/repeat/${order.id}`).expect(201);
+      expect(res.body.skipped).toEqual([]);
+      expect(res.body.added).toHaveLength(order.items.length);
+      expect(res.body.cart.positions).toBe(order.items.length);
+      await owner1.delete('/cart').expect(200);
+    });
+
+    it('если свободно меньше — добавляется сколько есть, остальное в отчёте', async () => {
+      const order = await prisma.order.findFirstOrThrow({
+        where: { company: { name: 'ООО «Азов-Транс»' }, items: { some: { part: { catalogNumber: 'НСРЗ-ГД-00877' } } } },
+      });
+      const part = await prisma.part.findUniqueOrThrow({ where: { catalogNumber: 'НСРЗ-ГД-00877' }, include: { stock: true } });
+      // свободна одна штука: на складе = резерв + 1
+      await prisma.stock.update({ where: { partId: part.id }, data: { quantity: part.stock!.reserved + 1 } });
+      await owner2.delete('/cart').expect(200);
+      const res = await owner2.post(`/cart/repeat/${order.id}`).expect(201);
+      const skipped = res.body.skipped.find((s: any) => s.partId === part.id);
+      expect(skipped).toMatchObject({ requested: 2, added: 1 });
+      expect(skipped.reason).toMatch(/доступно только 1/);
+      expect(res.body.cart.items.find((l: any) => l.part.id === part.id).quantity).toBe(1);
+      await prisma.stock.update({ where: { partId: part.id }, data: { quantity: part.stock!.quantity } });
+      await owner2.delete('/cart').expect(200);
+    });
+
+    it('чужой заказ повторить нельзя — 404', async () => {
+      const foreign = await prisma.order.findFirstOrThrow({ where: { company: { name: 'ООО «Черноморский флот»' } } });
+      await owner2.post(`/cart/repeat/${foreign.id}`).expect(404);
+    });
+  });
 });

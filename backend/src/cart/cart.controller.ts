@@ -56,6 +56,12 @@ export class CartController {
   clear(@CurrentUser() user: AuthUser) {
     return this.cart.clear(user.id);
   }
+
+  /** «Повторить заказ»: позиции прошлого заказа — в корзину (с учётом свободного остатка). */
+  @Post('repeat/:orderId')
+  repeat(@CurrentUser() user: AuthUser, @Param('orderId', ParseIntPipe) orderId: number) {
+    return this.cart.repeatOrder(user, orderId);
+  }
 }
 
 @Module({

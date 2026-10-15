@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -27,6 +28,7 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   Timer? _timer;
   bool _exporting = false;
+  bool _repeating = false;
 
   @override
   void initState() {
@@ -66,6 +68,32 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     }
   }
 
+  /// «Повторить заказ»: позиции — в корзину; чего не хватает на складе, показываем.
+  Future<void> _repeat(OrderDetail o) async {
+    setState(() => _repeating = true);
+    try {
+      final skipped = await ref.read(cartProvider.notifier).repeat(o.id);
+      if (!mounted) return;
+      if (skipped.isNotEmpty) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Не всё удалось добавить'),
+            content: Text(skipped.join('\n\n')),
+            actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Понятно'))],
+          ),
+        );
+      } else {
+        showMessage(context, 'Позиции заказа добавлены в корзину');
+      }
+      if (mounted) context.go('/cart');
+    } on ApiException catch (e) {
+      if (mounted) showMessage(context, e.message, error: true);
+    } finally {
+      if (mounted) setState(() => _repeating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(orderProvider(widget.id));
@@ -81,6 +109,19 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
             ),
         ],
       ),
+      bottomNavigationBar: async.value == null
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: OutlinedButton.icon(
+                  onPressed: _repeating ? null : () => _repeat(async.value!),
+                  icon: _repeating ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.replay_rounded),
+                  label: const Text('Повторить заказ'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                ),
+              ),
+            ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.5),
       body: async.when(
         skipLoadingOnReload: true,
         loading: () => const SkeletonList(count: 3, height: 160),

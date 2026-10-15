@@ -1,10 +1,11 @@
-import { ArrowLeftOutlined, DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { ArrowLeftOutlined, DownloadOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Result, Table } from 'antd';
 import { motion } from 'motion/react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
-import type { OrderDetail } from '../../api/types';
+import type { Cart, OrderDetail } from '../../api/types';
 import { ease, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
 import { ago, fmtDateTime, money } from '../../format';
 
@@ -32,7 +33,9 @@ export function OrderInfo({ order }: { order: OrderDetail }) {
 export default function OrderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
+  const qc = useQueryClient();
+  const [repeating, setRepeating] = useState(false);
   const { data: order, isLoading, error, dataUpdatedAt, refetch, isFetching } = useQuery({
     queryKey: ['orders', 'one', id],
     queryFn: () => api.get<OrderDetail>(`/orders/${id}`),
@@ -41,6 +44,38 @@ export default function OrderPage() {
 
   if (isLoading) return <Skeleton height={420} />;
   if (error || !order) return <Result status="404" title="Заказ не найден" subTitle={(error as ApiError)?.message} extra={<Button onClick={() => navigate('/orders')}>К заказам</Button>} />;
+
+  /** «Повторить заказ»: позиции — в корзину; то, чего не хватает на складе, перечисляем. */
+  const repeat = async () => {
+    setRepeating(true);
+    try {
+      const res = await api.post<{ cart: Cart; added: { name: string; quantity: number }[]; skipped: { name: string; requested: number; added: number; reason: string }[] }>(`/cart/repeat/${order.id}`);
+      qc.setQueryData(['cart'], res.cart);
+      if (res.skipped.length) {
+        modal.warning({
+          title: 'Не всё удалось добавить',
+          content: (
+            <ul style={{ paddingLeft: 18, margin: 0 }}>
+              {res.skipped.map((s) => (
+                <li key={s.name}>
+                  {s.name}: добавлено {s.added} из {s.requested} — {s.reason}
+                </li>
+              ))}
+            </ul>
+          ),
+          okText: 'Перейти в корзину',
+          onOk: () => navigate('/cart'),
+        });
+      } else {
+        message.success('Позиции заказа добавлены в корзину');
+        navigate('/cart');
+      }
+    } catch (e) {
+      message.error((e as ApiError).message);
+    } finally {
+      setRepeating(false);
+    }
+  };
 
   const exportCsv = () => api.download(`/orders/${order.id}/export.csv`, `${order.number}.csv`).catch((e) => message.error(e.message));
 
@@ -68,6 +103,9 @@ export default function OrderPage() {
             </span>
             <Button icon={<ReloadOutlined spin={isFetching} />} onClick={() => refetch()}>
               Обновить
+            </Button>
+            <Button icon={<RedoOutlined />} loading={repeating} onClick={repeat}>
+              Повторить заказ
             </Button>
             <Button icon={<DownloadOutlined />} onClick={exportCsv}>
               Экспорт в Excel (CSV)

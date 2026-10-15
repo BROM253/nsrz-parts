@@ -82,6 +82,53 @@ export class CartService {
     return this.get(userId);
   }
 
+  /**
+   * «Повторить заказ»: кладёт позиции прошлого заказа в корзину.
+   * Резерв соблюдается — если свободно меньше, добавляется сколько есть, остальное возвращается в skipped.
+   */
+  async repeatOrder(user: { id: string; companyId: string | null }, orderId: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: { include: { part: { include: partInclude } }, orderBy: { id: 'asc' } } },
+    });
+    if (!order || order.companyId !== user.companyId) throw new NotFoundException('Заказ не найден');
+
+    const inCart = new Map(
+      (await this.prisma.cartItem.findMany({ where: { userId: user.id } })).map((c) => [c.partId, c.quantity]),
+    );
+    const added: { partId: number; name: string; quantity: number }[] = [];
+    const skipped: { partId: number; name: string; requested: number; added: number; reason: string }[] = [];
+
+    for (const item of order.items) {
+      const view = stockView(item.part.stock);
+      const already = inCart.get(item.partId) ?? 0;
+      const room = Math.max(0, view.maxOrder - already);
+      const qty = Math.min(item.quantity, room);
+      if (qty > 0) {
+        await this.prisma.cartItem.upsert({
+          where: { userId_partId: { userId: user.id, partId: item.partId } },
+          create: { userId: user.id, partId: item.partId, quantity: already + qty },
+          update: { quantity: already + qty },
+        });
+        added.push({ partId: item.partId, name: item.part.name, quantity: qty });
+      }
+      if (qty < item.quantity) {
+        skipped.push({
+          partId: item.partId,
+          name: item.part.name,
+          requested: item.quantity,
+          added: qty,
+          reason: !view.orderable
+            ? view.allReserved
+              ? 'всё в резерве по другим заказам'
+              : 'нет на складе'
+            : `доступно только ${view.maxOrder} ${item.part.unit}`,
+        });
+      }
+    }
+    return { cart: await this.get(user.id), added, skipped };
+  }
+
   async clear(userId: string) {
     await this.prisma.cartItem.deleteMany({ where: { userId } });
     return this.get(userId);

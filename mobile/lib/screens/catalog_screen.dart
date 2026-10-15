@@ -152,6 +152,13 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             SliverToBoxAdapter(
               child: Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 10), child: Align(alignment: Alignment.centerLeft, child: SyncPill(parts.value?.stockUpdatedAt ?? dict?.stockUpdatedAt))),
             ),
+            if (parts.value?.offlineSince != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: OfflineBanner(parts.value!.offlineSince!, onRetry: () => ref.invalidate(partsProvider)),
+                ),
+              ),
             ...parts.when(
               skipLoadingOnReload: true,
               data: (page) => page.items.isEmpty

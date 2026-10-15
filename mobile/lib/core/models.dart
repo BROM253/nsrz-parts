@@ -74,8 +74,9 @@ class Part {
   final int leadTimeDays;
   final List<String> vesselTypes;
   final StockView stock;
+  final DateTime? offlineSince;
 
-  Part.fromJson(Map<String, dynamic> j)
+  Part.fromJson(Map<String, dynamic> j, {this.offlineSince})
       : id = _n(j['id']).toInt(),
         name = j['name'],
         description = j['description'],
@@ -97,7 +98,10 @@ class PartsPage {
   final int pageSize;
   final DateTime? stockUpdatedAt;
 
-  PartsPage.fromJson(Map<String, dynamic> j)
+  /// Не null — нет связи, показан сохранённый список от этого времени.
+  final DateTime? offlineSince;
+
+  PartsPage.fromJson(Map<String, dynamic> j, {this.offlineSince})
       : items = [for (final p in j['items']) Part.fromJson(p)],
         total = _n(j['total']).toInt(),
         page = _n(j['page']).toInt(),

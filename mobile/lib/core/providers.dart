@@ -74,10 +74,32 @@ class SessionNotifier extends Notifier<Session> {
 
 final sessionProvider = NotifierProvider<SessionNotifier, Session>(SessionNotifier.new);
 
+// ---------- Офлайн-кэш ----------
+
+/// GET с сохранением ответа на устройстве. Если связи нет (спутниковый канал оборвался),
+/// возвращает последний сохранённый ответ и время, когда он был получен (ТЗ п. 4.5, риски ТЗ).
+Future<(dynamic, DateTime?)> cachedGet(Ref ref, String path) async {
+  final api = ref.read(apiProvider);
+  final prefs = ref.read(prefsProvider);
+  final key = 'cache:$path';
+  try {
+    final data = await api.get(path);
+    await prefs.setString(key, jsonEncode({'at': DateTime.now().toIso8601String(), 'data': data}));
+    return (data, null);
+  } on ApiException catch (e) {
+    final raw = e.status == 0 ? prefs.getString(key) : null;
+    if (raw == null) rethrow;
+    final saved = jsonDecode(raw) as Map<String, dynamic>;
+    return (saved['data'], DateTime.parse(saved['at'] as String));
+  }
+}
+
 // ---------- Справочники и каталог ----------
 
 final dictionariesProvider = FutureProvider<Dictionaries>((ref) async {
-  return Dictionaries.fromJson(await ref.watch(apiProvider).get('/dictionaries'));
+  ref.watch(sessionProvider);
+  final (data, _) = await cachedGet(ref, '/dictionaries');
+  return Dictionaries.fromJson(data);
 });
 
 class CatalogFilter {
@@ -114,11 +136,13 @@ final catalogFilterProvider = NotifierProvider<CatalogFilterNotifier, CatalogFil
 
 final partsProvider = FutureProvider<PartsPage>((ref) async {
   final filter = ref.watch(catalogFilterProvider);
-  return PartsPage.fromJson(await ref.watch(apiProvider).get('/parts?${filter.toQuery()}'));
+  final (data, offlineSince) = await cachedGet(ref, '/parts?${filter.toQuery()}');
+  return PartsPage.fromJson(data, offlineSince: offlineSince);
 });
 
 final partProvider = FutureProvider.autoDispose.family<Part, int>((ref, id) async {
-  return Part.fromJson(await ref.watch(apiProvider).get('/parts/$id'));
+  final (data, offlineSince) = await cachedGet(ref, '/parts/$id');
+  return Part.fromJson(data, offlineSince: offlineSince);
 });
 
 // ---------- Корзина ----------
@@ -143,6 +167,16 @@ class CartNotifier extends AsyncNotifier<Cart> {
   Future<void> add(int partId, int quantity) => _apply(() => _api.post('/cart/items', {'partId': partId, 'quantity': quantity}));
   Future<void> setQuantity(int partId, int quantity) => _apply(() => _api.put('/cart/items/$partId', {'quantity': quantity}));
   Future<void> remove(int partId) => _apply(() => _api.delete('/cart/items/$partId'));
+  /// «Повторить заказ»: позиции прошлого заказа — в корзину. Возвращает то, чего не хватило на складе.
+  Future<List<String>> repeat(int orderId) async {
+    final res = await _api.post('/cart/repeat/$orderId');
+    state = AsyncData(Cart.fromJson(res['cart']));
+    ref.invalidate(partsProvider);
+    return [
+      for (final s in (res['skipped'] as List)) '${s['name']}: добавлено ${s['added']} из ${s['requested']} — ${s['reason']}',
+    ];
+  }
+
   void clearLocal() => state = const AsyncData(Cart.empty());
   Future<void> reload() async => state = AsyncData(Cart.fromJson(await _api.get('/cart')));
 }
