@@ -1,0 +1,11 @@
+# Зависимости и сборки
+node_modules/
+dist/
+*.tsbuildinfo
+# Данные PostgreSQL и секреты
+/data/
+.env
+# Готовые сборки для выдачи
+/release/
+# Логи
+*.log
