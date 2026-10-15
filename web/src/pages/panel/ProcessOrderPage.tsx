@@ -113,7 +113,7 @@ export default function ProcessOrderPage() {
         )}
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)', gap: 20, marginTop: 20 }}>
+      <div className="two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)', gap: 20, marginTop: 20 }}>
         <div className="card card-pad">
           <h3 style={{ marginTop: 0 }}>Позиции и наличие на складе</h3>
           {shortage && order.status === 'PENDING' && (

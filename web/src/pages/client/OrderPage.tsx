@@ -86,7 +86,7 @@ export default function OrderPage() {
         )}
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)', gap: 20, marginTop: 20 }} className="cart-layout">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)', gap: 20, marginTop: 20 }} className="two-col">
         <motion.div className="card card-pad" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.35, ease }}>
           <h3 style={{ marginTop: 0 }}>Состав заказа</h3>
           <Table

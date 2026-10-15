@@ -88,6 +88,12 @@ export default function CatalogPage() {
   const only = params.get('only') === '1';
   const page = Number(params.get('page') ?? 1);
 
+  // если адрес поменялся извне (кнопка «Назад»), подтягиваем строку поиска из него
+  useEffect(() => {
+    if (q !== text.trim()) setText(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
   // поиск с задержкой 300 мс — не дёргаем сервер на каждую букву
   useEffect(() => {
     const t = setTimeout(() => update({ q: text.trim() || null, page: null }), 300);
@@ -95,14 +101,18 @@ export default function CatalogPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
 
-  const update = (patch: Record<string, string | null>) => {
-    const next = new URLSearchParams(params);
-    for (const [k, v] of Object.entries(patch)) {
-      if (v === null || v === '') next.delete(k);
-      else next.set(k, v);
-    }
-    if (next.toString() !== params.toString()) setParams(next, { replace: true });
-  };
+  const update = (patch: Record<string, string | null>) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === null || v === '') next.delete(k);
+          else next.set(k, v);
+        }
+        return next;
+      },
+      { replace: true },
+    );
 
   const query = new URLSearchParams();
   if (q) query.set('q', q);

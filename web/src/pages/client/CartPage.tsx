@@ -64,7 +64,7 @@ export default function CartPage() {
       <p className="muted" style={{ marginTop: 0 }}>
         {cart.positions} {plural(cart.positions, 'позиция', 'позиции', 'позиций')} · {cart.count} ед. Количество ограничено свободным остатком склада.
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }} className="cart-layout">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }} className="two-col">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <AnimatePresence initial={false}>
             {cart.items.map((line) => (
@@ -134,7 +134,6 @@ export default function CartPage() {
           </Link>
         </motion.div>
       </div>
-      <style>{`@media (max-width: 900px){.cart-layout{grid-template-columns:1fr !important}}`}</style>
     </div>
   );
 }

@@ -77,7 +77,7 @@ export default function PartPage() {
       <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginLeft: -12, marginBottom: 12 }}>
         Назад к поиску
       </Button>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)', gap: 24, alignItems: 'start' }} className="part-layout">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)', gap: 24, alignItems: 'start' }} className="two-col">
         <motion.div className="card card-pad" style={{ padding: 32 }} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease }}>
           <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <motion.div initial={{ rotate: -12, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
@@ -185,7 +185,6 @@ export default function PartPage() {
           </AnimatePresence>
         </motion.div>
       </div>
-      <style>{`@media (max-width: 900px){.part-layout{grid-template-columns:1fr !important}}`}</style>
     </div>
   );
 }

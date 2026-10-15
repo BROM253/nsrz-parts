@@ -10,15 +10,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    chunkSizeWarningLimit: 1600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-          antd: ['antd', '@ant-design/icons'],
-          motion: ['motion'],
-        },
-      },
-    },
+    chunkSizeWarningLimit: 2000,
   },
 });

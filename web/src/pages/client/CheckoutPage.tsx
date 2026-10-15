@@ -72,6 +72,7 @@ export default function CheckoutPage() {
   const [done, setDone] = useState<OrderDetail | null>(null);
   // один ключ на одну попытку оформления: двойное нажатие или повтор после обрыва связи не создадут второй заказ
   const idempotencyKey = useRef(crypto.randomUUID());
+  const submitted = useRef(false);
 
   if (done) {
     return (
@@ -101,7 +102,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (isLoading) return <Skeleton height={400} />;
+  if (isLoading || submitted.current) return <Skeleton height={400} />;
   if (!cart || cart.items.length === 0) return <Navigate to="/cart" replace />;
 
   const submit = async () => {
@@ -110,10 +111,12 @@ export default function CheckoutPage() {
     setError(null);
     try {
       const order = await api.post<OrderDetail>('/orders', { vesselId, deliveryMethod: delivery, comment: comment.trim() || undefined, idempotencyKey: idempotencyKey.current });
+      // сначала запоминаем успех, потом чистим корзину — иначе пустая корзина уведёт со страницы раньше экрана «Готово»
+      submitted.current = true;
+      setDone(order);
       qc.setQueryData(['cart'], { items: [], count: 0, positions: 0, total: 0, hasProblems: false });
       qc.invalidateQueries({ queryKey: ['orders'] });
       qc.invalidateQueries({ queryKey: ['parts'] });
-      setDone(order);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       setError(e as ApiError);
@@ -130,7 +133,7 @@ export default function CheckoutPage() {
       <p className="muted" style={{ marginTop: 0 }}>
         Проверьте список, выберите судно и способ доставки.
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 360px', gap: 24, alignItems: 'start' }} className="cart-layout">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 360px', gap: 24, alignItems: 'start' }} className="two-col">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <section className="card card-pad">
             <h3 style={{ marginTop: 0 }}>1. Судно</h3>
