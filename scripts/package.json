@@ -1,0 +1,8 @@
+{
+  "name": "nsrz-scripts",
+  "private": true,
+  "description": "Инструменты запуска сервера: туннель tunnelmole как запасной вариант к Cloudflare",
+  "dependencies": {
+    "tunnelmole": "^2.4.0"
+  }
+}

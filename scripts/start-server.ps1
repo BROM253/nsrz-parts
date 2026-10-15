@@ -1,8 +1,8 @@
 ﻿# Запуск сервера «НСРЗ. Заказ запчастей» на домашнем ПК с доступом из интернета.
-# Что делает: PostgreSQL -> миграции -> сервер NestJS -> туннель Cloudflare -> показывает адрес для колледжа.
-# Запуск: двойной щелчок по «start-server.cmd» в папке nsrz-app. Окна PostgreSQL, сервера и туннеля не закрывать.
-
+# Что делает: PostgreSQL -> миграции -> сервер NestJS -> туннель в интернет -> проверяет адрес снаружи и показывает его.
+# Запуск: двойной щелчок по «start-server.cmd» в папке nsrz-app. Свёрнутые окна не закрывать.
 param([switch]$Quiet)  # -Quiet: не открывать браузер и не трогать буфер обмена (для проверки)
+
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $root 'backend'
@@ -13,8 +13,11 @@ function Test-Port($port) {
     try { $c = New-Object Net.Sockets.TcpClient; $c.Connect('127.0.0.1', $port); $c.Close(); return $true } catch { return $false }
 }
 function Wait-Port($port, $seconds, $what) {
-    for ($i = 0; $i -lt $seconds; $i++) { if (Test-Port $port) { return } ; Start-Sleep 1 }
+    for ($i = 0; $i -lt $seconds; $i++) { if (Test-Port $port) { return }; Start-Sleep 1 }
     throw "$what не запустился за $seconds с. Смотрите логи в $logs"
+}
+function Test-Public($url) {
+    try { return (Invoke-RestMethod -Uri "$url/api/health" -TimeoutSec 15).status -eq 'ok' } catch { return $false }
 }
 
 Write-Host ''
@@ -51,29 +54,64 @@ if (Test-Port 3000) {
     Write-Host '        готово: http://localhost:3000' -ForegroundColor Green
 }
 
-# 4. Туннель в интернет (бесплатный, без регистрации; адрес меняется при каждом запуске)
-Write-Host '  [4/4] Открываю доступ из интернета (Cloudflare)…'
+# 4. Туннель в интернет. Все варианты бесплатные и без регистрации, адрес меняется при каждом запуске.
+#    Пробуем по очереди и берём первый, который реально открывается снаружи (проверка дважды, с паузой):
+#      Cloudflare   — самый быстрый, но провайдеры и VPN иногда режут соединения с ним;
+#      tunnelmole   — без страниц-предупреждений, средняя скорость;
+#      localhost.run — через SSH, медленнее;
+#      serveo       — через SSH, при первом открытии в браузере показывает страницу «Warning» (нажать кнопку).
+Write-Host '  [4/4] Открываю доступ из интернета…'
 $cf = (Get-Command cloudflared -ErrorAction SilentlyContinue).Source
 if (-not $cf) { $cf = 'C:\Program Files (x86)\cloudflared\cloudflared.exe' }
-$cfLog = Join-Path $logs 'tunnel.log'
-Remove-Item $cfLog -ErrorAction SilentlyContinue
-Start-Process -FilePath $cf -ArgumentList 'tunnel', '--no-autoupdate', '--protocol', 'http2', '--url', 'http://localhost:3000' `
-    -WindowStyle Minimized -RedirectStandardError $cfLog -RedirectStandardOutput (Join-Path $logs 'tunnel-out.log')
+$ssh = 'C:\Windows\System32\OpenSSH\ssh.exe'
+$sshArgs = @('-T', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-R', '80:localhost:3000')
+
+$providers = @(
+    @{ Name = 'Cloudflare';    File = $cf;  Args = @('tunnel', '--no-autoupdate', '--url', 'http://localhost:3000'); Pattern = 'https://[a-z0-9-]+\.trycloudflare\.com'; Stream = 'err' },
+    @{ Name = 'tunnelmole';    File = (Join-Path $PSScriptRoot 'node_modules\.bin\tunnelmole.cmd'); Args = @('3000'); Pattern = 'https://[a-z0-9.-]+\.tunnelmole\.net'; Stream = 'out' },
+    @{ Name = 'localhost.run'; File = $ssh; Args = $sshArgs + @('nokey@localhost.run'); Pattern = 'https://[a-z0-9]+\.lhr\.life'; Stream = 'out' },
+    @{ Name = 'serveo';        File = $ssh; Args = $sshArgs + @('serveo.net'); Pattern = 'https://[a-z0-9.-]+\.serveousercontent\.com'; Stream = 'out' }
+)
+
+# старые туннели от прошлого запуска
+Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='ssh.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -match 'tunnelmole|localhost\.run|serveo\.net' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
 $url = $null
-for ($i = 0; $i -lt 60 -and -not $url; $i++) {
-    Start-Sleep 1
-    if (Test-Path $cfLog) {
-        $m = Select-String -Path $cfLog -Pattern 'https://[a-z0-9-]+\.trycloudflare\.com' | Select-Object -First 1
-        if ($m) { $url = $m.Matches[0].Value }
+$provider = $null
+foreach ($p in $providers) {
+    if (-not (Test-Path $p.File)) { continue }
+    Write-Host "        пробую $($p.Name)…"
+    $out = Join-Path $logs "tunnel-$($p.Name).out.log"
+    $err = Join-Path $logs "tunnel-$($p.Name).err.log"
+    Remove-Item $out, $err -ErrorAction SilentlyContinue
+    $proc = Start-Process -FilePath $p.File -ArgumentList $p.Args -WindowStyle Minimized -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+    $log = if ($p.Stream -eq 'err') { $err } else { $out }
+
+    $candidate = $null
+    for ($i = 0; $i -lt 45 -and -not $candidate; $i++) {
+        Start-Sleep 1
+        $text = Get-Content $log -Raw -ErrorAction SilentlyContinue
+        if ($text -and $text -match $p.Pattern) { $candidate = $Matches[0] }
     }
+    if ($candidate) {
+        # адрес должен открываться снаружи и не отваливаться через несколько секунд
+        $ok = $false
+        for ($j = 0; $j -lt 6 -and -not $ok; $j++) { if (Test-Public $candidate) { $ok = $true } else { Start-Sleep 5 } }
+        if ($ok) { Start-Sleep 10; $ok = Test-Public $candidate }
+        if ($ok) { $url = $candidate; $provider = $p.Name; break }
+    }
+    Write-Host "        $($p.Name) не подошёл" -ForegroundColor DarkYellow
+    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host ''
 if ($url) {
-    Set-Content -Path (Join-Path $root 'data\public-url.txt') -Value $url -Encoding UTF8
+    Set-Content -Path (Join-Path $root 'data\public-url.txt') -Value $url -Encoding ASCII
     if (-not $Quiet) { try { Set-Clipboard -Value $url } catch {} }
-    Write-Host '  ГОТОВО. Адрес для колледжа (уже скопирован в буфер обмена):' -ForegroundColor Green
+    Write-Host "  ГОТОВО ($provider). Адрес для колледжа (скопирован в буфер обмена):" -ForegroundColor Green
     Write-Host ''
     Write-Host "      $url" -ForegroundColor Yellow
     Write-Host ''
@@ -81,12 +119,12 @@ if ($url) {
     Write-Host "  Панель НСРЗ:         $url/panel"
     Write-Host "  Телефон (QR):        $url/app"
     Write-Host "  Документация API:    $url/api/docs"
-    Start-Sleep 4
-    if (-not $Quiet) { Start-Process $url }
+    if ($provider -eq 'serveo') { Write-Host '  serveo: при первом открытии в браузере нажмите кнопку на странице «Serveo - Warning».' -ForegroundColor DarkYellow }
+    if (-not $Quiet) { Start-Sleep 3; Start-Process $url }
 } else {
-    Write-Host '  Туннель не дал адрес за минуту. Сайт работает локально: http://localhost:3000' -ForegroundColor Red
-    Write-Host "  Лог туннеля: $cfLog"
+    Write-Host '  Ни один туннель не поднялся. Сайт работает на этом ПК: http://localhost:3000' -ForegroundColor Red
+    Write-Host '  Что попробовать: включить или выключить VPN и запустить ещё раз; логи — data\logs\tunnel-*.log'
 }
 Write-Host ''
-Write-Host '  Чтобы остановить сервер — закройте свёрнутые окна node и cloudflared (или перезагрузите ПК).'
+Write-Host '  Чтобы остановить сервер — закройте свёрнутые окна (node, cloudflared, ssh) или перезагрузите ПК.'
 Write-Host ''

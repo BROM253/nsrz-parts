@@ -1,23 +1,31 @@
 import { Spin } from 'antd';
-import { ReactNode } from 'react';
+import { lazy, ReactNode, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { isStaff, useAuth } from './auth';
-import ClientLayout from './pages/client/ClientLayout';
-import CartPage from './pages/client/CartPage';
-import CatalogPage from './pages/client/CatalogPage';
-import CheckoutPage from './pages/client/CheckoutPage';
-import OrderPage from './pages/client/OrderPage';
-import OrdersPage from './pages/client/OrdersPage';
-import PartPage from './pages/client/PartPage';
-import ProfilePage from './pages/client/ProfilePage';
-import AppPage from './pages/AppPage';
 import LoginPage from './pages/LoginPage';
-import AdminPage from './pages/panel/AdminPage';
-import PanelLayout from './pages/panel/PanelLayout';
-import ProcessOrderPage from './pages/panel/ProcessOrderPage';
-import QueuePage from './pages/panel/QueuePage';
-import StatsPage from './pages/panel/StatsPage';
-import StockPage from './pages/panel/StockPage';
+
+// Страницы грузятся по требованию: на узком канале первая загрузка — только вход и каркас.
+const ClientLayout = lazy(() => import('./pages/client/ClientLayout'));
+const CartPage = lazy(() => import('./pages/client/CartPage'));
+const CatalogPage = lazy(() => import('./pages/client/CatalogPage'));
+const CheckoutPage = lazy(() => import('./pages/client/CheckoutPage'));
+const OrderPage = lazy(() => import('./pages/client/OrderPage'));
+const OrdersPage = lazy(() => import('./pages/client/OrdersPage'));
+const PartPage = lazy(() => import('./pages/client/PartPage'));
+const ProfilePage = lazy(() => import('./pages/client/ProfilePage'));
+const AppPage = lazy(() => import('./pages/AppPage'));
+const AdminPage = lazy(() => import('./pages/panel/AdminPage'));
+const PanelLayout = lazy(() => import('./pages/panel/PanelLayout'));
+const ProcessOrderPage = lazy(() => import('./pages/panel/ProcessOrderPage'));
+const QueuePage = lazy(() => import('./pages/panel/QueuePage'));
+const StatsPage = lazy(() => import('./pages/panel/StatsPage'));
+const StockPage = lazy(() => import('./pages/panel/StockPage'));
+
+export const PageSpinner = () => (
+  <div style={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
+    <Spin size="large" />
+  </div>
+);
 
 function Guard({ staff, children }: { staff: boolean; children: ReactNode }) {
   const { user, ready } = useAuth();
@@ -37,6 +45,7 @@ function Guard({ staff, children }: { staff: boolean; children: ReactNode }) {
 
 export default function App() {
   return (
+    <Suspense fallback={<PageSpinner />}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/app" element={<AppPage />} />
@@ -72,5 +81,6 @@ export default function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }

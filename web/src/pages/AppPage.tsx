@@ -30,9 +30,14 @@ export default function AppPage() {
       <p className="muted">1. Скачайте и установите приложение (разрешите установку из этого источника, если телефон спросит).</p>
       <a href="/download/nsrz-parts.apk">
         <Button type="primary" size="large" block icon={<DownloadOutlined />}>
-          Скачать APK
+          Скачать APK · 19 МБ
         </Button>
       </a>
+      <div style={{ textAlign: 'center', marginTop: 6 }}>
+        <a href="/download/nsrz-parts-armv7.apk" className="faint" style={{ fontSize: 13 }}>
+          Телефон старше 2017 года? Версия для 32-битных процессоров
+        </a>
+      </div>
       <p className="muted" style={{ marginTop: 16 }}>
         2. Подключите приложение к этому серверу — адрес подставится сам.
       </p>

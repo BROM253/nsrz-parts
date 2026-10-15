@@ -1,6 +1,6 @@
 import { Tag } from 'antd';
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'motion/react';
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, Suspense, useEffect, useRef } from 'react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import type { OrderStatus, StockView } from '../api/types';
 import { fmtDateTime } from '../format';
@@ -151,7 +151,7 @@ export function AnimatedOutlet() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={location.pathname} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22, ease }}>
-        {outlet}
+        <Suspense fallback={<div style={{ minHeight: '40vh' }} />}>{outlet}</Suspense>
       </motion.div>
     </AnimatePresence>
   );

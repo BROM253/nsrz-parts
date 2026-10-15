@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
 import { PrismaExceptionFilter } from './common/prisma-exception.filter';
+import { serveClients } from './static';
 
 /** Общая настройка приложения — для запуска и для автотестов. */
 export function configureApp(app: NestExpressApplication) {
@@ -20,6 +21,7 @@ export function configureApp(app: NestExpressApplication) {
   );
   app.use(compression()); // канал до 128 кбит/с (ТЗ п. 4.5): JSON сжимается в 5–10 раз
   app.enableCors({ origin: true, exposedHeaders: ['Content-Disposition'] });
+  serveClients(app); // сайт, веб-версия приложения и APK — с того же адреса, что и API
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
