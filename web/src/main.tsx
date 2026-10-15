@@ -3,6 +3,7 @@ import '@fontsource/jetbrains-mono/500.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App as AntApp, ConfigProvider } from 'antd';
 import ruRU from 'antd/locale/ru_RU';
+import { MotionConfig } from 'motion/react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 import React from 'react';
@@ -33,7 +34,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <AuthProvider>
-              <App />
+              {/* системная настройка «уменьшить движение» отключает сдвиги и масштаб в анимациях */}
+              <MotionConfig reducedMotion="user">
+                <App />
+              </MotionConfig>
             </AuthProvider>
           </BrowserRouter>
         </QueryClientProvider>
