@@ -18,7 +18,8 @@ import { StockModule } from './stock/stock.controller';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot({
-      throttlers: [{ name: 'default', ttl: 60_000, limit: 300 }],
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 600 }],
+      errorMessage: 'Слишком много запросов подряд. Подождите минуту и попробуйте снова.',
       skipIf: () => process.env.NODE_ENV === 'test',
     }),
     PrismaModule,

@@ -16,6 +16,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 const CODE_TTL_SEC = 5 * 60;
 const RESEND_AFTER_SEC = 30;
+const RESEND_AFTER_SEC_DEMO = 5; // в демо-режиме (показ на защите) можно быстро переключаться между аккаунтами
 const MAX_ATTEMPTS = 5;
 const ACCESS_TTL_SEC = 60 * 60; // 1 час
 const REFRESH_TTL_DAYS = 30;
@@ -50,11 +51,12 @@ export class AuthService {
     }
 
     const last = await this.prisma.authCode.findFirst({ where: { login: value }, orderBy: { createdAt: 'desc' } });
+    const resendAfter = this.devCodes ? RESEND_AFTER_SEC_DEMO : RESEND_AFTER_SEC;
     if (last && process.env.NODE_ENV !== 'test') {
       const passed = (Date.now() - last.createdAt.getTime()) / 1000;
-      if (passed < RESEND_AFTER_SEC) {
+      if (passed < resendAfter) {
         throw new HttpException(
-          { statusCode: 429, message: `Новый код можно запросить через ${Math.ceil(RESEND_AFTER_SEC - passed)} с` },
+          { statusCode: 429, message: `Новый код можно запросить через ${Math.ceil(resendAfter - passed)} с` },
           HttpStatus.TOO_MANY_REQUESTS,
         );
       }
@@ -75,7 +77,7 @@ export class AuthService {
       channel: kind === 'phone' ? 'sms' : 'email',
       sentTo: maskLogin(kind, value),
       expiresInSec: CODE_TTL_SEC,
-      resendInSec: RESEND_AFTER_SEC,
+      resendInSec: resendAfter,
       ...(this.devCodes ? { devCode: code } : {}),
     };
   }

@@ -56,6 +56,7 @@ if (Test-Port 3000) {
 
 # 4. Туннель в интернет. Все варианты бесплатные и без регистрации, адрес меняется при каждом запуске.
 #    Пробуем по очереди и берём первый, который реально открывается снаружи (проверка дважды, с паузой):
+#      tuna         — российский, открывается без VPN, постоянный адрес (нужна регистрация и tuna login);
 #      Cloudflare   — самый быстрый, но провайдеры и VPN иногда режут соединения с ним;
 #      tunnelmole   — без страниц-предупреждений, средняя скорость;
 #      localhost.run — через SSH, медленнее;
@@ -66,15 +67,27 @@ if (-not $cf) { $cf = 'C:\Program Files (x86)\cloudflared\cloudflared.exe' }
 $ssh = 'C:\Windows\System32\OpenSSH\ssh.exe'
 $sshArgs = @('-T', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-R', '80:localhost:3000')
 
+# tuna.am — российский сервис: открывается без VPN, бесплатный постоянный поддомен (адрес не меняется).
+# Поддомен задаётся один раз в файле data\tuna-subdomain.txt (например: nsrz-parts).
+$tunaExe = (Get-Command tuna -ErrorAction SilentlyContinue).Source
+if (-not $tunaExe) { $tunaExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\tuna.exe' }
+$tunaArgs = @('http', '3000')
+$subFile = Join-Path $root 'data\tuna-subdomain.txt'
+if (Test-Path $subFile) {
+    $sub = (Get-Content $subFile -Raw).Trim()
+    if ($sub) { $tunaArgs += "--subdomain=$sub" }
+}
+
 $providers = @(
-    @{ Name = 'Cloudflare';    File = $cf;  Args = @('tunnel', '--no-autoupdate', '--url', 'http://localhost:3000'); Pattern = 'https://[a-z0-9-]+\.trycloudflare\.com'; Stream = 'err' },
+    @{ Name = 'tuna';          File = $tunaExe; Args = $tunaArgs; Pattern = 'https://[a-z0-9.-]+\.tuna\.am'; Stream = 'both' },
+    @{ Name = 'Cloudflare';   File = $cf;  Args = @('tunnel', '--no-autoupdate', '--url', 'http://localhost:3000'); Pattern = 'https://[a-z0-9-]+\.trycloudflare\.com'; Stream = 'err' },
     @{ Name = 'tunnelmole';    File = (Join-Path $PSScriptRoot 'node_modules\.bin\tunnelmole.cmd'); Args = @('3000'); Pattern = 'https://[a-z0-9.-]+\.tunnelmole\.net'; Stream = 'out' },
     @{ Name = 'localhost.run'; File = $ssh; Args = $sshArgs + @('nokey@localhost.run'); Pattern = 'https://[a-z0-9]+\.lhr\.life'; Stream = 'out' },
     @{ Name = 'serveo';        File = $ssh; Args = $sshArgs + @('serveo.net'); Pattern = 'https://[a-z0-9.-]+\.serveousercontent\.com'; Stream = 'out' }
 )
 
 # старые туннели от прошлого запуска
-Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-Process cloudflared, tuna -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='ssh.exe'" -ErrorAction SilentlyContinue |
     Where-Object { $_.CommandLine -match 'tunnelmole|localhost\.run|serveo\.net' } |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
@@ -93,7 +106,7 @@ foreach ($p in $providers) {
     $candidate = $null
     for ($i = 0; $i -lt 45 -and -not $candidate; $i++) {
         Start-Sleep 1
-        $text = Get-Content $log -Raw -ErrorAction SilentlyContinue
+        $text = if ($p.Stream -eq 'both') { (Get-Content $out -Raw -ErrorAction SilentlyContinue) + (Get-Content $err -Raw -ErrorAction SilentlyContinue) } else { Get-Content $log -Raw -ErrorAction SilentlyContinue }
         if ($text -and $text -match $p.Pattern) { $candidate = $Matches[0] }
     }
     if ($candidate) {

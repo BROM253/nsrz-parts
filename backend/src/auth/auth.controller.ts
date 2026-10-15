@@ -34,7 +34,8 @@ export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Public()
-  @Throttle({ default: { limit: 6, ttl: 60_000 } })
+  // код на один и тот же логин и так не чаще раза в 30 с (AuthService); здесь — защита от перебора логинов
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post('auth/request-code')
   @HttpCode(200)
   requestCode(@Body() dto: RequestCodeDto) {
@@ -42,7 +43,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 12, ttl: 60_000 } })
+  @Throttle({ default: { limit: 40, ttl: 60_000 } })
   @Post('auth/verify')
   @HttpCode(200)
   verify(@Body() dto: VerifyDto) {
