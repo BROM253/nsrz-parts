@@ -23,7 +23,7 @@ const STATUS_COLOR: Record<OrderStatus, string> = {
   CONFIRMED: '#2F5D73',
   ASSEMBLING: '#B4532A',
   READY: '#7A5C99',
-  COMPLETED: '#4E7D3A',
+  COMPLETED: '#3F6B2E',
   REJECTED: '#A8392C',
 };
 
@@ -80,7 +80,7 @@ export default function StatsPage() {
           <h3 style={{ marginTop: 0 }}>Скорость подтверждения</h3>
           <p className="muted" style={{ fontSize: 14 }}>Цель ТЗ: цикл «поиск — подтверждение» не более 4 часов в рабочее время.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <Progress type="dashboard" percent={data.confirmedWithin4h ?? 0} strokeColor={{ '0%': '#D9922E', '100%': '#4E7D3A' }} size={120} format={(p) => <span style={{ fontSize: 20, fontWeight: 700 }}>{p}%</span>} />
+            <Progress type="dashboard" percent={data.confirmedWithin4h ?? 0} strokeColor={{ '0%': '#D9922E', '100%': '#3F6B2E' }} size={120} format={(p) => <span style={{ fontSize: 20, fontWeight: 700 }}>{p}%</span>} />
             <div>
               <div className="faint" style={{ fontSize: 13 }}>в пределах 4 часов</div>
               <div style={{ fontSize: 13, marginTop: 8 }} className="faint">

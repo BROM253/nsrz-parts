@@ -78,6 +78,69 @@ function CodeInput({ onComplete, disabled }: { onComplete: (code: string) => voi
   );
 }
 
+/** Всплывающие пузыри на тёплом фоне страницы входа. */
+const BUBBLES = [
+  { size: 90, left: '8%', duration: 16, delay: 0, drift: 30 },
+  { size: 46, left: '28%', duration: 12, delay: 3, drift: -24 },
+  { size: 130, left: '55%', duration: 20, delay: 1.5, drift: 40 },
+  { size: 34, left: '72%', duration: 10, delay: 6, drift: -18 },
+  { size: 64, left: '86%', duration: 14, delay: 4, drift: 22 },
+];
+
+const isLocalHost = (h: string) => h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+
+/**
+ * QR-код для телефона. Если сайт открыт на самом ПК (localhost), телефону такой адрес не подходит —
+ * берём публичный адрес туннеля, а если его нет — адрес ПК в домашней сети (телефон в той же Wi-Fi).
+ */
+function PhoneQr() {
+  const [base, setBase] = useState<string | null>(isLocalHost(window.location.hostname) ? null : window.location.origin);
+  const [lanOnly, setLanOnly] = useState(false);
+
+  useEffect(() => {
+    if (base) return;
+    api
+      .get<{ publicUrl: string | null; lanUrls: string[] }>('/public-address')
+      .then((a) => {
+        if (a.publicUrl) setBase(a.publicUrl);
+        else if (a.lanUrls[0]) {
+          setBase(a.lanUrls[0]);
+          setLanOnly(true);
+        }
+      })
+      .catch(() => undefined);
+  }, [base]);
+
+  if (!base) return null;
+  const url = `${base}/app`;
+  return (
+    <motion.div
+      className="login-qr"
+      style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.35, duration: 0.5, ease }}
+    >
+      <motion.div whileHover={{ scale: 1.06, rotate: -1.5 }} style={{ background: '#FFF7EF', padding: 8, borderRadius: 14 }}>
+        <QRCode value={url} size={112} bordered={false} color="#3A2A22" />
+      </motion.div>
+      <div style={{ fontSize: 14, lineHeight: 1.5, minWidth: 0 }}>
+        <b>Приложение на телефоне</b>
+        <br />
+        Наведите камеру — Android и iPhone.
+        <br />
+        <span style={{ fontSize: 12.5, wordBreak: 'break-all' }}>{url}</span>
+        {lanOnly && (
+          <>
+            <br />
+            <span style={{ fontSize: 12.5 }}>Туннель не запущен: телефон должен быть в той же Wi-Fi, что и этот ПК.</span>
+          </>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function LoginPage() {
   const { user, signIn } = useAuth();
   const { message } = App.useApp();
@@ -134,6 +197,15 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-art">
+        {BUBBLES.map((b, i) => (
+          <motion.span
+            key={i}
+            className="bubble"
+            style={{ width: b.size, height: b.size, left: b.left, bottom: -b.size }}
+            animate={{ y: [0, -900], x: [0, b.drift, 0], opacity: [0, 1, 1, 0] }}
+            transition={{ duration: b.duration, delay: b.delay, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontWeight: 700, fontSize: 18 }}>
           <Logo size={46} /> АО «НСРЗ»
         </div>
@@ -145,18 +217,7 @@ export default function LoginPage() {
             Найдите деталь по номеру или названию, проверьте наличие на складе Новороссийского судоремонтного завода и отправьте заказ без писем и звонков.
           </motion.p>
         </div>
-        <div className="login-qr" style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
-          <div style={{ background: '#FFF7EF', padding: 8, borderRadius: 14 }}>
-            <QRCode value={`${window.location.origin}/app`} size={112} bordered={false} color="#3A2A22" />
-          </div>
-          <div style={{ fontSize: 14, lineHeight: 1.5 }}>
-            <b>Приложение на телефоне</b>
-            <br />
-            Наведите камеру — Android и iPhone.
-            <br />
-            <span style={{ opacity: 0.75 }}>Что видишь на складе — то и получишь</span>
-          </div>
-        </div>
+        <PhoneQr />
         <Waves className="hero-waves" color="#FFE7D2" />
       </div>
 

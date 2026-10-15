@@ -117,7 +117,8 @@ export default function StockPage() {
           rowKey="id"
           loading={isLoading}
           dataSource={data?.items}
-          rowClassName={(p) => (saved.has(p.id) ? 'row-saved' : '')}
+          rowClassName={(p) => (saved.has(p.id) ? 'row-appear row-saved' : 'row-appear')}
+          onRow={(_, i) => ({ style: { ['--d' as string]: `${Math.min(i ?? 0, 12) * 0.03}s` } })}
           pagination={{ current: page, pageSize: 25, total: data?.total, onChange: setPage, showSizeChanger: false }}
           columns={[
             { title: 'Номер', width: 170, render: (_, p) => <span className="mono">{p.catalogNumber}</span> },

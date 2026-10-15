@@ -1,14 +1,12 @@
-import { LogoutOutlined } from '@ant-design/icons';
-import { Avatar, Button } from 'antd';
+import { Avatar } from 'antd';
 import { motion } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth';
+import { LogoutButton } from '../../components/LogoutButton';
 import { CategoryIcon, ease, itemVariants, listVariants } from '../../components/ui';
 import { ROLE_TITLES } from '../../format';
 
 export default function ProfilePage() {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   if (!user) return null;
   return (
     <div style={{ maxWidth: 860 }}>
@@ -26,9 +24,7 @@ export default function ProfilePage() {
             {[user.phoneFormatted, user.email].filter(Boolean).join(' · ')}
           </div>
         </div>
-        <Button danger icon={<LogoutOutlined />} onClick={() => signOut().then(() => navigate('/login'))}>
-          Выйти
-        </Button>
+        <LogoutButton variant="danger" />
       </motion.div>
 
       <h3 style={{ marginTop: 28 }}>Суда компании</h3>

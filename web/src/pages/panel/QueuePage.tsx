@@ -63,8 +63,8 @@ export default function QueuePage() {
           rowKey="id"
           loading={isLoading}
           dataSource={data?.items}
-          rowClassName={(o) => (Date.now() - new Date(o.createdAt).getTime() < 10 * 60_000 && o.status === 'PENDING' ? 'row-new' : '')}
-          onRow={(o) => ({ onClick: () => navigate(`/panel/orders/${o.id}`), style: { cursor: 'pointer' } })}
+          rowClassName={(o) => (Date.now() - new Date(o.createdAt).getTime() < 10 * 60_000 && o.status === 'PENDING' ? 'row-appear row-new' : 'row-appear')}
+          onRow={(o, i) => ({ onClick: () => navigate(`/panel/orders/${o.id}`), style: { cursor: 'pointer', ['--d' as string]: `${Math.min(i ?? 0, 12) * 0.04}s` } })}
           pagination={{ current: page, pageSize: data?.pageSize ?? 20, total: data?.total, onChange: setPage, showSizeChanger: false }}
           locale={{ emptyText: status === 'PENDING' ? 'Очередь пуста — все заказы обработаны 🎉' : 'Заказов нет' }}
           columns={[

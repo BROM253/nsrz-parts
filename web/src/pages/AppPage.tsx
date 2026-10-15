@@ -25,7 +25,7 @@ export default function AppPage() {
     0.1,
     <>
       <h2 style={{ marginTop: 0 }}>
-        <AndroidFilled style={{ color: '#4E7D3A' }} /> Android
+        <AndroidFilled style={{ color: '#3F6B2E' }} /> Android
       </h2>
       <p className="muted">1. Скачайте и установите приложение (разрешите установку из этого источника, если телефон спросит).</p>
       <a href="/download/nsrz-parts.apk">

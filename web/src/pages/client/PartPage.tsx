@@ -8,7 +8,7 @@ import { api, ApiError } from '../../api/client';
 import { useCart, useCartActions } from '../../api/hooks';
 import type { Part } from '../../api/types';
 import { useAuth } from '../../auth';
-import { AvailabilityBadge, CategoryIcon, ease, Skeleton, Stepper } from '../../components/ui';
+import { AvailabilityBadge, CategoryIcon, ease, flyToCart, Skeleton, Stepper } from '../../components/ui';
 import { fmtDateTime, money } from '../../format';
 
 function Copy({ value }: { value: string }) {
@@ -61,16 +61,19 @@ export default function PartPage() {
 
   const fitsMyFleet = user?.vessels.filter((v) => part.vesselTypes.includes(v.vesselType.name)) ?? [];
 
-  const addToCart = () =>
+  const addToCart = (e: React.MouseEvent) => {
+    const button = e.currentTarget;
     add.mutate(
       { partId: part.id, quantity: qty },
       {
         onSuccess: () => {
+          flyToCart(button);
           setJustAdded(true);
           setQty(1);
         },
       },
     );
+  };
 
   return (
     <div>

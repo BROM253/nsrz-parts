@@ -2,7 +2,7 @@ import type { ThemeConfig } from 'antd';
 
 /**
  * Тёплая палитра: терракота, песок, охра, оливковый.
- * Все цвета текста и статусов проверены на контраст не ниже 4,5 : 1 (WCAG AA) на белом и песочном фоне.
+ * Все цвета текста и статусов — контраст не ниже 4,5 : 1 (WCAG AA) на белом, песочном фоне и фоне своих бейджей.
  * Те же значения используются в мобильном приложении (mobile/lib/theme.dart).
  */
 export const c = {
@@ -22,10 +22,10 @@ export const c = {
   borderStrong: '#D9C9B6',
   text: '#2F2620', // тёмно-коричневый вместо чёрного — мягче для глаз
   textSecondary: '#6E5F53',
-  textMuted: '#9A8B7E',
-  success: '#4E7D3A',
+  textMuted: '#7A6A5D',
+  success: '#3F6B2E',
   successSoft: '#E7F0DF',
-  warning: '#A8660F',
+  warning: '#8A5208',
   warningSoft: '#FBEBD3',
   danger: '#A8392C',
   dangerSoft: '#F8E1DC',

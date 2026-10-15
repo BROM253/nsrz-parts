@@ -85,11 +85,11 @@ export function AvailabilityBadge({ stock, unit = 'шт.', lead }: { stock: Stoc
 }
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; fg: string; icon: string }> = {
-  PENDING: { bg: '#FBEBD3', fg: '#A8660F', icon: '◷' },
+  PENDING: { bg: '#FBEBD3', fg: '#8A5208', icon: '◷' },
   CONFIRMED: { bg: '#E3EDF0', fg: '#2F5D73', icon: '✓' },
   ASSEMBLING: { bg: '#F6E3D6', fg: '#9C4422', icon: '⚙' },
   READY: { bg: '#EDE6F4', fg: '#5E4479', icon: '⇪' },
-  COMPLETED: { bg: '#E7F0DF', fg: '#4E7D3A', icon: '★' },
+  COMPLETED: { bg: '#E7F0DF', fg: '#3F6B2E', icon: '★' },
   REJECTED: { bg: '#F8E1DC', fg: '#A8392C', icon: '✕' },
 };
 
@@ -162,8 +162,8 @@ export function SuccessCheck() {
   return (
     <svg className="success-check" viewBox="0 0 120 120">
       <motion.circle cx="60" cy="60" r="52" fill="#E7F0DF" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 16 }} style={{ originX: '60px', originY: '60px' }} />
-      <motion.circle cx="60" cy="60" r="52" fill="none" stroke="#4E7D3A" strokeWidth="5" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.7, ease, delay: 0.1 }} />
-      <motion.path d="M38 62l15 15 30-32" fill="none" stroke="#4E7D3A" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.45, ease, delay: 0.55 }} />
+      <motion.circle cx="60" cy="60" r="52" fill="none" stroke="#3F6B2E" strokeWidth="5" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.7, ease, delay: 0.1 }} />
+      <motion.path d="M38 62l15 15 30-32" fill="none" stroke="#3F6B2E" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.45, ease, delay: 0.55 }} />
     </svg>
   );
 }
@@ -221,3 +221,10 @@ export const itemVariants = {
   hidden: { opacity: 0, y: 16, scale: 0.98 },
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease } },
 };
+
+/** Сообщить шапке, что деталь добавлена: от этой кнопки к корзине полетит точка. */
+export function flyToCart(from: Element | null) {
+  if (!from) return;
+  const r = from.getBoundingClientRect();
+  window.dispatchEvent(new CustomEvent('nsrz:fly', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 } }));
+}

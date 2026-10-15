@@ -14,10 +14,10 @@
   --border-strong: #d9c9b6;
   --text: #2f2620;
   --text-2: #6e5f53;
-  --text-3: #9a8b7e;
-  --success: #4e7d3a;
+  --text-3: #7a6a5d;
+  --success: #3f6b2e;
   --success-soft: #e7f0df;
-  --warning: #a8660f;
+  --warning: #8a5208;
   --warning-soft: #fbebd3;
   --danger: #a8392c;
   --danger-soft: #f8e1dc;
@@ -546,7 +546,7 @@ body {
 .login-art {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, #c2643a 0%, #a8471f 45%, #6b2e17 100%);
+  background: linear-gradient(160deg, #a9502b 0%, #8e3c1c 45%, #5e2a15 100%);
   color: #fff7ef;
   padding: 56px;
   display: flex;
@@ -795,5 +795,154 @@ body {
 @media (max-width: 900px) {
   .login-qr {
     display: none !important;
+  }
+}
+
+/* ---------- Анимации и интерактив ---------- */
+
+/* прощание при выходе из аккаунта */
+.logout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: radial-gradient(900px 500px at 50% 40%, rgba(217, 146, 46, 0.25), transparent 70%),
+    linear-gradient(160deg, #fffaf4, #f6e6d6);
+  color: var(--text);
+}
+
+.logout-overlay h2 {
+  margin: 18px 0 0;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.logout-overlay p {
+  margin: 0;
+  color: var(--text-2);
+}
+
+/* точка, летящая в корзину */
+.fly-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1500;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e08a5c, var(--primary));
+  box-shadow: 0 6px 16px rgba(180, 83, 42, 0.45);
+  pointer-events: none;
+}
+
+/* отклик кнопок на нажатие */
+.ant-btn {
+  transition: transform 0.12s var(--ease), box-shadow 0.2s, background 0.2s, border-color 0.2s, color 0.2s !important;
+}
+
+.ant-btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* живой фон шапки каталога */
+.hero {
+  background-size: 160% 160%, 160% 160%, 100% 100%;
+  animation: heroGlow 14s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+  from {
+    background-position: 0% 0%, 100% 100%, 0 0;
+  }
+  to {
+    background-position: 100% 30%, 0% 70%, 0 0;
+  }
+}
+
+/* пузыри на странице входа */
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 231, 210, 0.35), rgba(255, 231, 210, 0.05));
+  pointer-events: none;
+}
+
+/* карточки: мягкое свечение при наведении */
+.part-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(400px 160px at var(--mx, 50%) var(--my, 0%), rgba(217, 146, 46, 0.12), transparent 70%);
+  transition: opacity 0.3s var(--ease);
+}
+
+.part-card:hover::after {
+  opacity: 1;
+}
+
+/* строки таблиц панели появляются по очереди */
+.row-appear td {
+  animation-delay: var(--d, 0s) !important;
+  animation: rowAppear 0.45s var(--ease) both;
+}
+
+@keyframes rowAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* пульс статуса, когда он меняется на глазах */
+.status-pulse {
+  display: inline-block;
+  animation: statusPulse 1.2s var(--ease) 2;
+  border-radius: 999px;
+}
+
+@keyframes statusPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(180, 83, 42, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(180, 83, 42, 0);
+  }
+}
+
+.row-appear.row-new td {
+  animation: rowAppear 0.45s var(--ease) both, rowFlash 2.4s var(--ease) 1 !important;
+}
+
+/* узкий экран: шапка помещается целиком */
+@media (max-width: 700px) {
+  .topbar-inner {
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .brand span {
+    display: none;
+  }
+  .nav a {
+    padding: 8px 8px;
+    font-size: 14px;
+  }
+  .nav-indicator {
+    left: 8px;
+    right: 8px;
+  }
+  .logout-label {
+    display: none;
   }
 }

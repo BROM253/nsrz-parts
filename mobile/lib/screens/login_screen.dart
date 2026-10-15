@@ -147,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             width: double.infinity,
             padding: EdgeInsets.fromLTRB(24, MediaQuery.paddingOf(context).top + 28, 24, 40),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Color(0xFFC2643A), Color(0xFFA8471F), Color(0xFF7A3419)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+              gradient: LinearGradient(colors: [Color(0xFFA9502B), Color(0xFF8E3C1C), Color(0xFF5E2A15)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
             ),
             child: Stack(children: [

@@ -19,10 +19,10 @@ class C {
   static const borderStrong = Color(0xFFD9C9B6);
   static const text = Color(0xFF2F2620);
   static const text2 = Color(0xFF6E5F53);
-  static const text3 = Color(0xFF9A8B7E);
-  static const success = Color(0xFF4E7D3A);
+  static const text3 = Color(0xFF7A6A5D);
+  static const success = Color(0xFF3F6B2E);
   static const successSoft = Color(0xFFE7F0DF);
-  static const warning = Color(0xFFA8660F);
+  static const warning = Color(0xFF8A5208);
   static const warningSoft = Color(0xFFFBEBD3);
   static const danger = Color(0xFFA8392C);
   static const dangerSoft = Color(0xFFF8E1DC);

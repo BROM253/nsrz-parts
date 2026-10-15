@@ -2,7 +2,7 @@ import { ArrowLeftOutlined, DownloadOutlined, RedoOutlined, ReloadOutlined } fro
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Result, Table } from 'antd';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Cart, OrderDetail } from '../../api/types';
@@ -33,7 +33,7 @@ export function OrderInfo({ order }: { order: OrderDetail }) {
 export default function OrderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { message, modal } = App.useApp();
+  const { message, modal, notification } = App.useApp();
   const qc = useQueryClient();
   const [repeating, setRepeating] = useState(false);
   const { data: order, isLoading, error, dataUpdatedAt, refetch, isFetching } = useQuery({
@@ -41,6 +41,22 @@ export default function OrderPage() {
     queryFn: () => api.get<OrderDetail>(`/orders/${id}`),
     refetchInterval: 15_000, // смена статуса в панели НСРЗ появляется здесь в течение 15 секунд
   });
+
+  // статус сменился, пока страница открыта, — всплывающее уведомление и пульс значка
+  const prevStatus = useRef<string | undefined>(undefined);
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    if (!order) return;
+    if (prevStatus.current && prevStatus.current !== order.status) {
+      notification.success({
+        message: `Заказ ${order.number}: ${order.statusTitle}`,
+        description: order.status === 'REJECTED' ? `Причина: ${order.rejectReason}` : 'Статус обновлён складом НСРЗ.',
+        placement: 'bottomRight',
+      });
+      setPulse((p) => p + 1);
+    }
+    prevStatus.current = order.status;
+  }, [order, notification]);
 
   if (isLoading) return <Skeleton height={420} />;
   if (error || !order) return <Result status="404" title="Заказ не найден" subTitle={(error as ApiError)?.message} extra={<Button onClick={() => navigate('/orders')}>К заказам</Button>} />;
@@ -94,7 +110,9 @@ export default function OrderPage() {
               {order.number}
             </div>
             <div style={{ marginTop: 8 }}>
-              <StatusTag status={order.status} title={order.statusTitle} />
+              <span key={pulse} className={pulse ? 'status-pulse' : undefined}>
+                <StatusTag status={order.status} title={order.statusTitle} />
+              </span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

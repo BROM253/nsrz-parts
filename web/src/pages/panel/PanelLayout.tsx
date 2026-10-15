@@ -1,11 +1,12 @@
-import { BarChartOutlined, DatabaseOutlined, InboxOutlined, LogoutOutlined, TeamOutlined } from '@ant-design/icons';
+import { BarChartOutlined, DatabaseOutlined, InboxOutlined, TeamOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { App, Avatar, Badge, Button, Layout, Menu } from 'antd';
+import { App, Avatar, Badge, Layout, Menu } from 'antd';
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 import type { StaffOrdersPage } from '../../api/types';
 import { useAuth } from '../../auth';
+import { LogoutButton } from '../../components/LogoutButton';
 import { AnimatedOutlet, Logo } from '../../components/ui';
 import { ROLE_TITLES } from '../../format';
 
@@ -25,7 +26,7 @@ export function usePendingQueue() {
 }
 
 export default function PanelLayout() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { notification } = App.useApp();
@@ -78,7 +79,7 @@ export default function PanelLayout() {
               icon: <InboxOutlined />,
               label: (
                 <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  Очередь заказов <Badge count={pending} color="#D9922E" />
+                  Очередь заказов <Badge count={pending} color="#8A5208" />
                 </span>
               ),
             },
@@ -101,7 +102,7 @@ export default function PanelLayout() {
             <Avatar style={{ background: '#F6E3D6', color: '#9C4422', fontWeight: 700 }}>
               {user?.fullName.split(' ').slice(0, 2).map((p) => p[0]).join('')}
             </Avatar>
-            <Button type="text" icon={<LogoutOutlined />} onClick={() => signOut().then(() => navigate('/login'))} aria-label="Выйти" />
+            <LogoutButton />
           </div>
         </Layout.Header>
         <Layout.Content className="panel-content">

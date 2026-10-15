@@ -8,7 +8,7 @@ import { api } from '../../api/client';
 import { useCartActions, useDictionaries } from '../../api/hooks';
 import type { Part, PartsPage } from '../../api/types';
 import { useAuth } from '../../auth';
-import { AvailabilityBadge, CategoryIcon, ease, itemVariants, listVariants, Skeleton, SyncPill, Waves } from '../../components/ui';
+import { AvailabilityBadge, CategoryIcon, ease, flyToCart, itemVariants, listVariants, Skeleton, SyncPill, Waves } from '../../components/ui';
 import { money, plural } from '../../format';
 
 function PartCard({ part }: { part: Part }) {
@@ -18,10 +18,12 @@ function PartCard({ part }: { part: Part }) {
 
   const quickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const button = e.currentTarget;
     add.mutate(
       { partId: part.id, quantity: 1 },
       {
         onSuccess: () => {
+          flyToCart(button);
           setAdded(true);
           setTimeout(() => setAdded(false), 1600);
         },
@@ -31,7 +33,14 @@ function PartCard({ part }: { part: Part }) {
 
   return (
     <motion.div variants={itemVariants} layout whileHover={{ y: -4 }} transition={{ duration: 0.25, ease }}>
-      <div className="part-card" onClick={() => navigate(`/parts/${part.id}`)} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/parts/${part.id}`)}>
+      <div
+        className="part-card"
+        onMouseMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`);
+        }}
+        onClick={() => navigate(`/parts/${part.id}`)} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/parts/${part.id}`)}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           <CategoryIcon icon={part.category.icon} />
           <div style={{ flex: 1, minWidth: 0 }}>
