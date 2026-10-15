@@ -10,6 +10,7 @@ import OrderPage from './pages/client/OrderPage';
 import OrdersPage from './pages/client/OrdersPage';
 import PartPage from './pages/client/PartPage';
 import ProfilePage from './pages/client/ProfilePage';
+import AppPage from './pages/AppPage';
 import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/panel/AdminPage';
 import PanelLayout from './pages/panel/PanelLayout';
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/app" element={<AppPage />} />
       <Route
         path="/panel"
         element={

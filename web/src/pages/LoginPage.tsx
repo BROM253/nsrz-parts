@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
-import { App, Button, Input, Segmented } from 'antd';
+import { App, Button, Input, QRCode, Segmented } from 'antd';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -145,7 +145,18 @@ export default function LoginPage() {
             Найдите деталь по номеру или названию, проверьте наличие на складе Новороссийского судоремонтного завода и отправьте заказ без писем и звонков.
           </motion.p>
         </div>
-        <div style={{ fontSize: 14, opacity: 0.75 }}>Что видишь на складе — то и получишь</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ background: '#FFF7EF', padding: 8, borderRadius: 14 }}>
+            <QRCode value={`${window.location.origin}/app`} size={112} bordered={false} color="#3A2A22" />
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.5 }}>
+            <b>Приложение на телефоне</b>
+            <br />
+            Наведите камеру — Android и iPhone.
+            <br />
+            <span style={{ opacity: 0.75 }}>Что видишь на складе — то и получишь</span>
+          </div>
+        </div>
         <Waves className="hero-waves" color="#FFE7D2" />
       </div>
 

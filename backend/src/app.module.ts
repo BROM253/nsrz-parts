@@ -27,12 +27,17 @@ function staticRoots(): ServeStaticModuleOptions[] {
   const root = join(__dirname, '..', '..');
   const mobileWeb = process.env.MOBILE_WEB_DIST ?? join(root, 'mobile', 'build', 'web');
   const webDist = process.env.WEB_DIST ?? join(root, 'web', 'dist');
+  const release = process.env.RELEASE_DIR ?? join(root, 'release');
   const roots: ServeStaticModuleOptions[] = [];
+  // готовые сборки (APK) — скачиваются с телефона по ссылке со страницы /app
+  if (existsSync(release)) {
+    roots.push({ rootPath: release, serveRoot: '/download', exclude: ['/api/{*path}'], serveStaticOptions: { index: false } });
+  }
   if (existsSync(mobileWeb)) {
     roots.push({ rootPath: mobileWeb, serveRoot: '/m', exclude: ['/api/{*path}'] });
   }
   if (existsSync(webDist)) {
-    roots.push({ rootPath: webDist, exclude: ['/api/{*path}', '/m/{*path}'] });
+    roots.push({ rootPath: webDist, exclude: ['/api/{*path}', '/m/{*path}', '/download/{*path}'] });
   }
   return roots;
 }
