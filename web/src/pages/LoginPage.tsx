@@ -145,7 +145,7 @@ export default function LoginPage() {
             Найдите деталь по номеру или названию, проверьте наличие на складе Новороссийского судоремонтного завода и отправьте заказ без писем и звонков.
           </motion.p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
+        <div className="login-qr" style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 1 }}>
           <div style={{ background: '#FFF7EF', padding: 8, borderRadius: 14 }}>
             <QRCode value={`${window.location.origin}/app`} size={112} bordered={false} color="#3A2A22" />
           </div>

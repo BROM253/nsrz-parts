@@ -791,3 +791,9 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+@media (max-width: 900px) {
+  .login-qr {
+    display: none !important;
+  }
+}
