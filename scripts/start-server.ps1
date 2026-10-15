@@ -68,18 +68,19 @@ $ssh = 'C:\Windows\System32\OpenSSH\ssh.exe'
 $sshArgs = @('-T', '-o', 'StrictHostKeyChecking=accept-new', '-o', 'ServerAliveInterval=30', '-o', 'ExitOnForwardFailure=yes', '-R', '80:localhost:3000')
 
 # tuna.am — российский сервис: открывается без VPN, бесплатный постоянный поддомен (адрес не меняется).
-# Поддомен задаётся один раз в файле data\tuna-subdomain.txt (например: nsrz-parts).
+# Поддомен задаётся один раз в файле data\tuna-subdomain.txt (например: your-subdomain) — адрес будет https://<поддомен>.a.tuna.free
 $tunaExe = (Get-Command tuna -ErrorAction SilentlyContinue).Source
 if (-not $tunaExe) { $tunaExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\tuna.exe' }
 $tunaArgs = @('http', '3000')
 $subFile = Join-Path $root 'data\tuna-subdomain.txt'
 if (Test-Path $subFile) {
-    $sub = (Get-Content $subFile -Raw).Trim()
+    # можно записать и просто имя, и полный адрес — берём только имя поддомена
+    $sub = ((Get-Content $subFile -Raw).Trim() -replace '^https?://', '').Split('.')[0]
     if ($sub) { $tunaArgs += "--subdomain=$sub" }
 }
 
 $providers = @(
-    @{ Name = 'tuna';          File = $tunaExe; Args = $tunaArgs; Pattern = 'https://[a-z0-9.-]+\.tuna\.am'; Stream = 'both' },
+    @{ Name = 'tuna';          File = $tunaExe; Args = $tunaArgs; Pattern = 'https://[a-z0-9.-]+\.tuna\.(am|free)'; Stream = 'both' },
     @{ Name = 'Cloudflare';   File = $cf;  Args = @('tunnel', '--no-autoupdate', '--url', 'http://localhost:3000'); Pattern = 'https://[a-z0-9-]+\.trycloudflare\.com'; Stream = 'err' },
     @{ Name = 'tunnelmole';    File = (Join-Path $PSScriptRoot 'node_modules\.bin\tunnelmole.cmd'); Args = @('3000'); Pattern = 'https://[a-z0-9.-]+\.tunnelmole\.net'; Stream = 'out' },
     @{ Name = 'localhost.run'; File = $ssh; Args = $sshArgs + @('nokey@localhost.run'); Pattern = 'https://[a-z0-9]+\.lhr\.life'; Stream = 'out' },
