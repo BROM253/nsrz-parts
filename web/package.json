@@ -1,6 +1,6 @@
 {
   "name": "nsrz-web",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Сайт «НСРЗ. Заказ запчастей»: кабинет судовладельца и панель НСРЗ",
   "type": "module",

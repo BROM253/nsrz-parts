@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
 import { PrismaExceptionFilter } from './common/prisma-exception.filter';
+import { APP_VERSION } from './common/version';
 import { serveClients } from './static';
 
 /** Общая настройка приложения — для запуска и для автотестов. */
@@ -40,7 +41,7 @@ export function configureApp(app: NestExpressApplication) {
       'REST API мобильного приложения, сайта и панели НСРЗ. ' +
         'Вход: POST /api/auth/request-code → POST /api/auth/verify → кнопка Authorize (Bearer).',
     )
-    .setVersion('1.0.0')
+    .setVersion(APP_VERSION)
     .addBearerAuth()
     .build();
   SwaggerModule.setup('api/docs', app, () => SwaggerModule.createDocument(app, config), {

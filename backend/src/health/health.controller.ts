@@ -5,6 +5,7 @@ import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from '../common/auth.decorators';
+import { APP_VERSION } from '../common/version';
 import { BackupModule, BackupService } from '../backup/backup.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -31,7 +32,7 @@ export class HealthController {
       status: db === 'ok' ? 'ok' : 'degraded',
       db,
       app: 'НСРЗ. Заказ запчастей',
-      version: process.env.npm_package_version ?? '1.0.0',
+      version: APP_VERSION,
       demoCodes: this.config.get('AUTH_DEV_CODES') === 'true',
       lastBackup: this.backup.lastBackupAt()?.toISOString() ?? null, // ТЗ п. 4.4: копия не старше суток
       time: new Date().toISOString(),
