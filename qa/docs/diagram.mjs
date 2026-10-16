@@ -1,11 +1,15 @@
 // Схема рабочей среды (развёртывания) для отчёта этапа 6: SVG → PNG через Edge.
-//   node docs/diagram.mjs → docs/out/deploy-diagram.png
+//   node docs/diagram.mjs [версия] [имя] → docs/out/<имя>.png (по умолчанию 1.1.0 → deploy-diagram, как в отчёте этапа 6)
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const here = dirname(fileURLToPath(import.meta.url));
+const version = process.argv[2] ?? '1.1.0';
+const name = process.argv[3] ?? 'deploy-diagram';
+// с версии 1.2.0 — мониторинг и обращения (этап 7)
+const stage7 = version !== '1.1.0';
 const out = join(here, 'out');
 mkdirSync(out, { recursive: true });
 
@@ -37,20 +41,20 @@ ${arrow(222, 331, 288, 245)}
 <text x="850" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="${C.primary}">Рабочий сервер — домашний ПК (Windows 11)</text>
 ${box(565, 160, 165, 110, 'Клиент tuna', ['tuna.exe', 'принимает запросы', 'из интернета'])}
 ${arrow(492, 216, 563, 216)}
-${box(770, 70, 370, 150, 'Сервер NestJS (порт 3000)', ['REST API: вход, каталог, заказы, панель', 'сайт и панель НСРЗ (React)', 'веб-версия для iPhone /m/ (Flutter)', 'APK для Android /download/', 'версия 1.1.0, /api/health'])}
+${box(770, 70, 370, 150, 'Сервер NestJS (порт 3000)', ['REST API: вход, каталог, заказы, панель', 'сайт и панель НСРЗ (React)', 'веб-версия для iPhone /m/ (Flutter)', 'APK для Android /download/', `версия ${version}, /api/health`])}
 ${arrow(732, 200, 768, 170)}
 ${box(770, 255, 175, 110, 'PostgreSQL 16', ['порт 5432', 'база nsrz', 'data\\postgres'])}
 ${arrow(900, 222, 870, 253, '', 0)}
 ${box(965, 255, 175, 110, 'Резервные копии', ['data\\backups', 'при запуске и', 'раз в сутки, 14 шт.'], C.okSoft, C.ok)}
 ${arrow(947, 310, 963, 310)}
 ${box(565, 390, 280, 130, 'QA-стенд (порт 3100)', ['отдельная база nsrz_qa', 'автотесты, нагрузка, безопасность,', 'учебный стенд для обучения'])}
-${box(865, 390, 275, 130, 'Скрипты эксплуатации', ['start-server.cmd — запуск', 'deploy.ps1 — выкатка версии', 'smoke.mjs — дымовой тест'])}
+${box(865, 390, 275, 130, 'Скрипты эксплуатации', ['start-server.cmd — запуск', 'deploy.ps1 — выкатка версии', 'smoke.mjs — дымовой тест', ...(stage7 ? ['monitor.mjs — сторож доступности'] : [])])}
 </svg>`;
 
 const browser = await chromium.launch({ channel: 'msedge' });
 const page = await browser.newPage({ deviceScaleFactor: 2 });
 await page.setContent(`<html><body style="margin:0">${svg}</body></html>`);
-await page.locator('svg').screenshot({ path: join(out, 'deploy-diagram.png') });
+await page.locator('svg').screenshot({ path: join(out, `${name}.png`) });
 await browser.close();
-writeFileSync(join(out, 'deploy-diagram.svg'), svg);
-console.log('схема:', join(out, 'deploy-diagram.png'));
+writeFileSync(join(out, `${name}.svg`), svg);
+console.log('схема:', join(out, `${name}.png`));

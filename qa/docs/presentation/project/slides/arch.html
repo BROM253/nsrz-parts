@@ -1,0 +1,45 @@
+<section id="arch" data-transition="fade" style="background:#FAF5EE;color:#1F1813;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:44px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9C4422">Архитектура</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#1F1813">Один сервер — три клиента</h2>
+</div>
+<div style="display:flex;align-items:center;gap:24px">
+<div style="width:380px;display:flex;flex-direction:column;gap:16px;flex:none">
+<div style="display:flex;flex-direction:column;gap:4px;background:#FFFBF6;border:1px solid #D9C9B6;border-radius:16px;padding:20px 24px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">Android</p><p style="font-size:24px;color:#5C4B3F">приложение APK (Flutter)</p></div>
+<div style="display:flex;flex-direction:column;gap:4px;background:#FFFBF6;border:1px solid #D9C9B6;border-radius:16px;padding:20px 24px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">iPhone</p><p style="font-size:24px;color:#5C4B3F">веб-версия на экран «Домой»</p></div>
+<div style="display:flex;flex-direction:column;gap:4px;background:#FFFBF6;border:1px solid #D9C9B6;border-radius:16px;padding:20px 24px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">Компьютер</p><p style="font-size:24px;color:#5C4B3F">сайт и панель НСРЗ (React)</p></div>
+</div>
+<x-shape kind="arrow-right" style="width:64px;height:36px;background:#B4532A"></x-shape>
+<div style="width:300px;flex:none;display:flex;flex-direction:column;gap:8px;background:#E7F0DF;border:2px solid #3F6B2E;border-radius:16px;padding:24px">
+<x-icon name="Globe" style="color:#3F6B2E;width:48px;height:48px"></x-icon>
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">Туннель tuna</p>
+<p style="font-size:24px;line-height:1.4;color:#2D4A22">HTTPS, постоянный адрес, открывается в России без VPN</p>
+</div>
+<x-shape kind="arrow-right" style="width:64px;height:36px;background:#B4532A"></x-shape>
+<div style="flex:1;display:flex;flex-direction:column;gap:14px;background:#FFF8F0;border:2px dashed #B4532A;border-radius:20px;padding:24px">
+<p style="font-size:24px;font-weight:700;color:#9C4422">Рабочий сервер — ПК под Windows 11</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div style="display:flex;flex-direction:column;gap:4px;background:#F6E3D6;border-radius:14px;padding:18px 20px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">NestJS 11</p><p style="font-size:24px;color:#5C4B3F">API, сайт, приложение, APK</p></div>
+<div style="display:flex;flex-direction:column;gap:4px;background:#F6E3D6;border-radius:14px;padding:18px 20px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">PostgreSQL 16</p><p style="font-size:24px;color:#5C4B3F">17 таблиц, Prisma</p></div>
+<div style="display:flex;flex-direction:column;gap:4px;background:#F6E3D6;border-radius:14px;padding:18px 20px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">Копии базы</p><p style="font-size:24px;color:#5C4B3F">при запуске и раз в сутки</p></div>
+<div style="display:flex;flex-direction:column;gap:4px;background:#F6E3D6;border-radius:14px;padding:18px 20px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:32px;font-weight:700">Мониторинг</p><p style="font-size:24px;color:#5C4B3F">проверка раз в минуту</p></div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:16px">
+<p style="font-size:24px;font-weight:600;color:#3A2A22;background:#EFE5DA;border-radius:999px;padding:10px 22px">Flutter 3.47 · Riverpod</p>
+<p style="font-size:24px;font-weight:600;color:#3A2A22;background:#EFE5DA;border-radius:999px;padding:10px 22px">React 18 · Ant Design 5</p>
+<p style="font-size:24px;font-weight:600;color:#3A2A22;background:#EFE5DA;border-radius:999px;padding:10px 22px">NestJS 11 · Prisma 6</p>
+<p style="font-size:24px;font-weight:600;color:#3A2A22;background:#EFE5DA;border-radius:999px;padding:10px 22px">PostgreSQL 16</p>
+<p style="font-size:24px;font-weight:600;color:#3A2A22;background:#EFE5DA;border-radius:999px;padding:10px 22px">Playwright · k6 · Jest</p>
+</div>
+<div style="position:absolute;left:128px;bottom:64px;width:1664px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#6B5A4D">НСРЗ. Заказ запчастей · Черный П. С., ИП41-23</p>
+<p style="font-size:24px;color:#6B5A4D">7 / 22</p>
+</div>
+<aside>Архитектура — модульный монолит: для пилота на 10–20 судовладельцев микросервисы не нужны. Один сервер на NestJS отдаёт и программный интерфейс, и все клиенты: сайт, панель НСРЗ, веб-версию приложения и файл APK.
+
+Приложение написано на Flutter — один код для Android и iPhone. Нативную сборку для iPhone без компьютера Mac не подписать, поэтому на iPhone работает веб-версия того же приложения: её добавляют на экран «Домой», и она открывается как обычное приложение.
+
+База данных — PostgreSQL 16, 17 таблиц. Сервер работает на моём ПК, а из интернета до него достают через туннель tuna — почему именно tuna, расскажу в разделе о проблемах. Резервные копии и мониторинг работают автоматически.</aside>
+</section>

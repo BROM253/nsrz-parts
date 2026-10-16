@@ -1,0 +1,22 @@
+<section id="monitoring" data-transition="fade" style="background:#F3EADF;color:#1F1813;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9C4422">Поддержка · мониторинг</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#1F1813">Мониторинг работы системы</h2>
+</div>
+<div style="display:flex;gap:64px;align-items:start">
+<div style="width:600px;display:flex;flex-direction:column;gap:30px;flex:none">
+<div style="display:flex;flex-direction:column;gap:4px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:800;line-height:1.05;color:#2D5220">100 %</p><p style="font-size:24px;color:#5C4B3F">доступность с начала мониторинга · цель ТЗ ≥ 99 %</p></div>
+<div style="display:flex;flex-direction:column;gap:4px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:800;line-height:1.05;color:#9C4422">≈ 50 мс</p><p style="font-size:24px;color:#5C4B3F">ответ сервера для 95 % запросов · цель &lt; 500 мс</p></div>
+<div style="display:flex;flex-direction:column;gap:4px"><p style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:800;line-height:1.05;color:#9C4422">0</p><p style="font-size:24px;color:#5C4B3F">ошибок сервера за сутки</p></div>
+<p style="font-size:24px;line-height:1.4;color:#1F1813;background:#FFFBF6;border-left:6px solid #B4532A;border-radius:12px;padding:18px 22px">Сторож раз в минуту проверяет сайт так, как его видит телефон; при всплеске ошибок — письмо администратору</p>
+</div>
+<img src="/_blob/4218d1b899e66309c6d4cb4434a08eb2" alt="Страница «Мониторинг» в панели администратора: система работает нормально, доступность 100 %, время ответа, ошибки и резервная копия" style="width:1000px;height:600px;object-fit:contain;background:#FFFBF6;border:1px solid #EADFD2;border-radius:20px;box-shadow:0 18px 48px rgba(90,40,15,0.16)">
+</div>
+<div style="position:absolute;left:128px;bottom:64px;width:1664px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#6B5A4D">НСРЗ. Заказ запчастей · Черный П. С., ИП41-23</p>
+<p style="font-size:24px;color:#6B5A4D">18 / 22</p>
+</div>
+<aside>Седьмой этап — поддержка и развитие. Первое — мониторинг. В панели администратора есть страница «Мониторинг»: доступность, время ответа сервера, ошибки, запросы по минутам, самые медленные запросы и возраст резервной копии. Отдельный сторож раз в минуту проверяет и сервер, и адрес в интернете, а при всплеске ошибок администратору уходит письмо.
+
+Мониторинг сразу дважды нашёл проблемы в моей же работе. Первая — ложная тревога: с моего ПК трафик идёт через VPN, и сторож считал сайт недоступным, хотя у пользователей он открывался за 0,3 секунды. Я перевёл проверку в обход VPN — так, как сайт видит телефон. Вторая — после выкатки версии доступность упала до 96,7 %, потому что перезапуск сервера считался простоем. Плановые работы простоем не считаются, поэтому теперь выкатка сама отмечает окно работ, и мониторинг его исключает. Сейчас: доступность 100 %, ответ около 50 миллисекунд, ошибок нет.</aside>
+</section>

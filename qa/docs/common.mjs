@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const here = dirname(fileURLToPath(import.meta.url));
 
 export const URL = 'https://your-subdomain.a.tuna.free';
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.1';
 export const SALES = 'Отдел продаж НСРЗ: +7 8617 00-00-00, prodazhi@nsrz.ru';
 export const AUTHOR = 'Черный Павел Сергеевич, группа ИП41-23';
 

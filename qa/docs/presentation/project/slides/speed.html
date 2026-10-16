@@ -1,0 +1,35 @@
+<section id="speed" data-transition="fade" style="background:#FAF5EE;color:#1F1813;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9C4422">Проблема 2</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#1F1813">Долгая первая загрузка</h2>
+</div>
+<div style="display:flex;gap:32px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFBF6;border:1px solid #EADFD2;border-radius:20px;padding:40px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:120px;font-weight:800;line-height:1;color:#9C4422;white-space:nowrap">0,5 МБ</p>
+<p style="font-size:32px;line-height:1.4;color:#1F1813">весь сайт после сжатия — <span style="color:#6B5A4D">было 1,6 МБ</span></p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFFBF6;border:1px solid #EADFD2;border-radius:20px;padding:40px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:120px;font-weight:800;line-height:1;color:#9C4422;white-space:nowrap">19 МБ</p>
+<p style="font-size:32px;line-height:1.4;color:#1F1813">APK под нужный процессор — <span style="color:#6B5A4D">было 54 МБ</span></p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#3A2A22;border-radius:20px;padding:40px">
+<p style="font-family:'Rubik', Arial, sans-serif;font-size:120px;font-weight:800;line-height:1;color:#F2A97F;white-space:nowrap">0,3 с</p>
+<p style="font-size:32px;line-height:1.4;color:#FFF6EE">открытие сайта на телефоне без VPN</p>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;gap:16px;align-items:start"><x-icon name="Check" style="color:#3F6B2E;width:36px;height:36px"></x-icon><p style="font-size:32px;line-height:1.35">Сжатие brotli и gzip — заранее, при сборке</p></div>
+<div style="display:flex;gap:16px;align-items:start"><x-icon name="Check" style="color:#3F6B2E;width:36px;height:36px"></x-icon><p style="font-size:32px;line-height:1.35">Долгий кэш: второй раз файлы не скачиваются</p></div>
+<div style="display:flex;gap:16px;align-items:start"><x-icon name="Check" style="color:#3F6B2E;width:36px;height:36px"></x-icon><p style="font-size:32px;line-height:1.35">Сайт разбит на части — страница грузит только своё</p></div>
+<div style="display:flex;gap:16px;align-items:start"><x-icon name="Check" style="color:#3F6B2E;width:36px;height:36px"></x-icon><p style="font-size:32px;line-height:1.35">Рисунки деталей — вектор 1,4–5,3 КБ вместо фото</p></div>
+</div>
+<div style="position:absolute;left:128px;bottom:64px;width:1664px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#6B5A4D">НСРЗ. Заказ запчастей · Черный П. С., ИП41-23</p>
+<p style="font-size:24px;color:#6B5A4D">14 / 22</p>
+</div>
+<aside>Вторая проблема — скорость. Когда сайт заработал без VPN, оказалось, что первая загрузка идёт долго: канал до домашнего компьютера узкий, а сайт весил 1,6 мегабайта. Приложение APK вообще весило 54 мегабайта — через туннель его было бы не скачать.
+
+Что я сделал. Все файлы сайта сжимаются заранее, при сборке, алгоритмом brotli — сайт стал весить 0,5 мегабайта. Включил долгий кэш: при повторном открытии файлы не скачиваются вовсе. Разбил сайт на части: каждая страница загружает только свой код. Вместо фотографий деталей — векторные рисунки по 1,4–5,3 килобайта. APK собрал отдельными файлами под разные процессоры: вместо 54 мегабайт — 19.
+
+Результат: сайт на телефоне без VPN открывается за 0,3–0,8 секунды. Это важно и для судов: по техническому заданию связь может быть всего 128 килобит в секунду.</aside>
+</section>

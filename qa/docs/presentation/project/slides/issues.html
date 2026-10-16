@@ -1,0 +1,23 @@
+<section id="issues" data-transition="fade" style="background:#F3EADF;color:#1F1813;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9C4422">Ещё задачи</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#1F1813">Что ещё пришлось решить</h2>
+</div>
+<table style="font-family:'Inter', Arial, sans-serif;font-size:28px;color:#1F1813;background:#FFFBF6;border:1px solid #EADFD2;border-radius:20px">
+<tr style="background:#3A2A22"><th style="width:46%;padding:14px 24px;color:#FFF6EE">Проблема</th><th style="width:54%;color:#FFF6EE">Решение</th></tr>
+<tr><td style="width:46%">QR-код на входе вёл на localhost</td><td style="width:54%">Сервер сам сообщает публичный адрес туннеля</td></tr>
+<tr><td>Ошибка 429 при входе: лимит 6 запросов в минуту на всех</td><td>Разумные лимиты и понятное сообщение на русском</td></tr>
+<tr><td>Сборка APK падала: кэш Kotlin на разных дисках</td><td>Отключён инкрементальный кэш Kotlin</td></tr>
+<tr><td>Flutter 3.47: Material вынесен в отдельный пакет</td><td>Переход на пакет material_ui</td></tr>
+<tr><td>Не скачивался установщик PostgreSQL</td><td>Портативная база данных прямо в проекте</td></tr>
+<tr><td>Бледный текст и бейджи: контраст ниже 4,5 : 1</td><td>Цвета затемнены, контраст проверен расчётом</td></tr>
+<tr><td>Страница tuna «Вы собираетесь посетить…»</td><td>Подсказка в инструкциях, автотесты нажимают «Посетить» сами</td></tr>
+</table>
+<div style="position:absolute;left:128px;bottom:64px;width:1664px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#6B5A4D">НСРЗ. Заказ запчастей · Черный П. С., ИП41-23</p>
+<p style="font-size:24px;color:#6B5A4D">15 / 22</p>
+</div>
+<aside>Были и задачи поменьше — коротко о них. QR-код на странице входа вёл на localhost, если сайт открыт на самом компьютере: теперь сервер сам сообщает публичный адрес. Вход падал с ошибкой 429 — лимит был 6 запросов в минуту на всех пользователей сразу; поставил разумные лимиты и понятное сообщение.
+
+Сборка APK падала из-за кэша Kotlin, когда проект и кэш на разных дисках, — отключил инкрементальный кэш. Во Flutter 3.47 Material вынесли в отдельный пакет — перешёл на material_ui. Установщик PostgreSQL не скачивался — взял портативную сборку базы прямо в проекте. Бледный текст не дотягивал до нормы контраста — затемнил цвета. А страницу-предупреждение tuna автотесты научились проходить сами.</aside>
+</section>

@@ -1,0 +1,20 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-10-16T20:35:00Z" },
+  "lists": "css",
+  "title": "НСРЗ. Заказ запчастей — защита проекта",
+  "cover": "cover",
+  "order": ["cover", "problem", "solution", "roles", "rivals", "stages", "arch", "demo-site", "demo-app", "design", "rules", "hard", "vpn", "speed", "issues", "tests", "release", "monitoring", "support", "versions", "results", "thanks"],
+  "sections": {
+    "s1": { "description": "Идея: проблема судовладельцев, решение НСРЗ, пользователи и конкуренты", "start": "cover" },
+    "s2": { "description": "Как сделано: этапы, архитектура, живая работа системы, дизайн и правила заказа", "start": "stages" },
+    "s3": { "description": "Проблемы и решения: доступ без VPN, скорость загрузки и другие задачи", "start": "hard" },
+    "s4": { "description": "Качество и запуск: тесты, релиз, мониторинг, поддержка и обновления", "start": "tests" },
+    "s5": { "description": "Итоги и вопросы", "start": "results" }
+  },
+  "faces": {
+    "rubik": { "family": "Rubik", "href": "https://fonts.googleapis.com/css2?family=Rubik:wght@400..800&display=swap" },
+    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" },
+    "jetbrains-mono": { "family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" }
+  }
+}

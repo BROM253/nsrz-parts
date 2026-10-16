@@ -1,0 +1,33 @@
+<section id="vpn" data-transition="fade" style="background:#FAF5EE;color:#1F1813;font-family:'Inter', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#9C4422">Проблема 1</p>
+<h2 style="font-family:'Rubik', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1;color:#1F1813">Сайт не открывался без VPN</h2>
+</div>
+<div style="display:flex;gap:56px;align-items:start">
+<div style="width:720px;display:flex;flex-direction:column;flex:none">
+<p style="font-size:24px;font-weight:700;color:#6B5A4D;padding:0 0 14px 0">Перепробовал 5 туннелей:</p>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #D9C9B6;padding:16px 0"><p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;font-weight:700">Cloudflare</p><p style="font-size:24px;font-weight:700;color:#8E2A1E;background:#F8E1DC;border-radius:999px;padding:6px 18px">блокируется</p></div>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #D9C9B6;padding:16px 0"><p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;font-weight:700">tunnelmole</p><p style="font-size:24px;font-weight:700;color:#8E2A1E;background:#F8E1DC;border-radius:999px;padding:6px 18px">блокируется</p></div>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #D9C9B6;padding:16px 0"><p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;font-weight:700">serveo</p><p style="font-size:24px;font-weight:700;color:#8E2A1E;background:#F8E1DC;border-radius:999px;padding:6px 18px">блокируется</p></div>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #D9C9B6;padding:16px 0"><p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;font-weight:700">localhost.run</p><p style="font-size:24px;font-weight:700;color:#7A4706;background:#FBEBD3;border-radius:999px;padding:6px 18px">обрывается</p></div>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #D9C9B6;border-bottom:1px solid #D9C9B6;padding:16px 0"><p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:32px;font-weight:700;color:#2D5220">tuna.am</p><p style="font-size:24px;font-weight:700;color:#2D5220;background:#E7F0DF;border-radius:999px;padding:6px 18px">работает без VPN</p></div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:22px;background:#3A2A22;border-radius:24px;padding:44px">
+<h3 style="font-family:'Rubik', Arial, sans-serif;font-size:44px;font-weight:700;line-height:1.15;color:#FFF6EE">Решение — российский туннель tuna</h3>
+<p style="font-size:24px;line-height:1.4;color:#F1E3D6">Постоянный адрес: <span style="color:#F2A97F">your-subdomain.a.tuna.free</span></p>
+<p style="font-size:24px;line-height:1.4;color:#F1E3D6">Сайт на телефоне без VPN открывается за 0,3 с</p>
+<p style="font-size:24px;line-height:1.4;color:#F1E3D6">Скрипт запуска сам проверяет адрес снаружи</p>
+<p style="font-size:24px;line-height:1.4;color:#F1E3D6">Мониторинг проверяет адрес в обход VPN — так, как его видит телефон пользователя</p>
+<p style="font-size:24px;line-height:1.4;color:#F1E3D6">При первом входе — одна страница tuna: нажать «Посетить»</p>
+</div>
+</div>
+<div style="position:absolute;left:128px;bottom:64px;width:1664px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#6B5A4D">НСРЗ. Заказ запчастей · Черный П. С., ИП41-23</p>
+<p style="font-size:24px;color:#6B5A4D">13 / 22</p>
+</div>
+<aside>Первая проблема. Сервер стоит у меня дома, и чтобы его было видно из интернета, нужен туннель. Сначала я сделал это через Cloudflare — на компьютере всё работало. Но на телефоне без VPN сайт не открывался: провайдеры в России режут соединения с Cloudflare. Я проверил tunnelmole и serveo — тоже заблокированы, localhost.run постоянно обрывается.
+
+Решение — российский сервис tuna: он открывается без VPN, и адрес у него постоянный, его не нужно менять в QR-коде и в приложении. Сайт на телефоне открывается за 0,3 секунды.
+
+Тонкость: у меня на компьютере всегда включён VPN, поэтому проверять «как у пользователя» приходилось в обход него — запросом через домашнюю сеть. Этот же приём я потом встроил в мониторинг. И ещё: бесплатный tuna при первом заходе из браузера показывает страницу «Вы собираетесь посетить…» — достаточно один раз нажать «Посетить», это написано в инструкциях.</aside>
+</section>
