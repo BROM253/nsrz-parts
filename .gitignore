@@ -18,3 +18,4 @@ qa/playwright-report/
 qa/load/results/*.csv
 qa/load/results/*.json
 qa/load/results/*.log
+qa/report/out/

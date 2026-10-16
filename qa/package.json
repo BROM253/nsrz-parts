@@ -14,6 +14,8 @@
     "load:race": "D:/dev/k6/k6.exe run load/race.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0"
+    "@playwright/test": "^1.63.0",
+    "docx": "^9.8.1",
+    "docx-preview": "^0.4.1"
   }
 }
