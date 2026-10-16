@@ -10,7 +10,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 
 /// Версия приложения — уходит в обращение, чтобы поддержка знала, в какой версии ошибка.
-const appVersion = '1.1.0'; // 1.1.0 — появилась «Помощь и обратная связь» (этап 7)
+const appVersion = '1.1.1'; // 1.1.0 — «Помощь и обратная связь» (этап 7); 1.1.1 — контраст выбранной темы
 
 /// Техподдержка (этап 7): обращение из приложения и «Мои обращения» с ответами НСРЗ.
 class Ticket {
@@ -103,7 +103,10 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
               onSelected: (_) => setState(() => _category = code),
               avatar: Icon(icon, size: 18, color: _category == code ? C.primaryDark : C.text2),
               label: Text(title),
+              // явный тёмный цвет текста: тема даёт выбранному чипу белый текст, на светлом фоне он не читается
+              labelStyle: TextStyle(color: _category == code ? C.primaryDark : C.text, fontWeight: _category == code ? FontWeight.w700 : FontWeight.w500),
               selectedColor: C.primarySoft,
+              showCheckmark: false,
             ),
         ]),
         const SizedBox(height: 12),

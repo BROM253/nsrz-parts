@@ -133,7 +133,7 @@ export class MonitoringService {
   /** Доступность по журналам сторожа: всего и в рабочее время, за сутки и неделю; инциденты. */
   availability() {
     const dir = monitoringDir();
-    if (!existsSync(dir)) return { checks: 0, lastCheck: null, day: null, week: null, incidents: [] };
+    if (!existsSync(dir)) return { checks: 0, lastCheck: null, day: null, week: null, incidents: [], maintenance: [] };
     const weekAgo = Date.now() - 7 * DAY;
     const checks: UptimeCheck[] = [];
     for (const f of readdirSync(dir).filter((n) => /^uptime-\d{4}-\d{2}-\d{2}\.jsonl$/.test(n)).sort().slice(-8)) {
@@ -147,12 +147,19 @@ export class MonitoringService {
         }
       }
     }
+    // плановые работы (выкатка версии, scripts/deploy.ps1) простоем не считаются — как в SLA
+    const windows = this.maintenanceWindows();
+    const planned = (c: UptimeCheck) => {
+      const t = new Date(c.t).getTime();
+      return windows.some((w) => t >= w.from && t <= w.to);
+    };
     // доступность для пользователей — через интернет (туннель), если проверялась, иначе — сам сервер
     const up = (c: UptimeCheck) => (c.public ? c.public.ok : c.local.ok);
     const rate = (list: UptimeCheck[]) => (list.length ? round((list.filter(up).length / list.length) * 100) : null);
     const span = (from: number) => {
-      const list = checks.filter((c) => new Date(c.t).getTime() >= from);
-      return { all: rate(list), work: rate(list.filter((c) => isWorkHours(c.t))), checks: list.length };
+      const all = checks.filter((c) => new Date(c.t).getTime() >= from);
+      const list = all.filter((c) => !planned(c));
+      return { all: rate(list), work: rate(list.filter((c) => isWorkHours(c.t))), checks: list.length, planned: all.length - list.length };
     };
     const incidentsFile = join(dir, 'incidents.jsonl');
     const incidents = existsSync(incidentsFile)
@@ -177,7 +184,39 @@ export class MonitoringService {
       day: span(Date.now() - DAY),
       week: span(weekAgo),
       incidents,
+      maintenance: windows
+        .filter((w) => w.from >= weekAgo)
+        .slice(-5)
+        .reverse()
+        .map((w) => ({ start: new Date(w.from).toISOString(), end: w.open ? null : new Date(w.to).toISOString(), version: w.version })),
     };
+  }
+
+  /** Окна плановых работ из data/monitoring/maintenance.jsonl (пишет deploy.ps1): начало — конец + 2 минуты на прогрев. */
+  private maintenanceWindows() {
+    const file = join(monitoringDir(), 'maintenance.jsonl');
+    if (!existsSync(file)) return [];
+    const events = readFileSync(file, 'utf8')
+      .split('\n')
+      .filter((l) => l.trim())
+      .map((l) => {
+        try {
+          return JSON.parse(l) as { event: 'start' | 'end'; at: string; version?: string };
+        } catch {
+          return null;
+        }
+      })
+      .filter((e): e is { event: 'start' | 'end'; at: string; version?: string } => !!e);
+    const windows: { from: number; to: number; version?: string; open: boolean }[] = [];
+    for (const e of events) {
+      const t = new Date(e.at).getTime();
+      if (e.event === 'start') windows.push({ from: t, to: t + 30 * 60_000, version: e.version, open: true }); // без «end» — не дольше 30 минут
+      else {
+        const w = [...windows].reverse().find((x) => x.open);
+        if (w) Object.assign(w, { to: t + 2 * 60_000, open: false });
+      }
+    }
+    return windows;
   }
 
   snapshot() {

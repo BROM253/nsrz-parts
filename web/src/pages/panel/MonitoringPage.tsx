@@ -21,6 +21,7 @@ interface Span {
   all: number | null;
   work: number | null;
   checks: number;
+  planned: number;
 }
 interface Monitoring {
   version: string;
@@ -43,6 +44,7 @@ interface Monitoring {
     day: Span | null;
     week: Span | null;
     incidents: { kind: string; event: string; start: string; end?: string; minutes?: number }[];
+    maintenance: { start: string; end: string | null; version?: string }[];
   };
 }
 
@@ -58,7 +60,12 @@ export default function MonitoringPage() {
   const week = data.availability.week;
   const max = Math.max(1, ...data.perMinute.map((m) => m.requests));
   const kpis = [
-    { title: 'Доступность в рабочее время, 7 дней', value: pctText(week?.work ?? week?.all), hint: `цель ТЗ — не ниже ${TARGET} % · проверок: ${week?.checks ?? 0}`, good: (week?.work ?? week?.all ?? 100) >= TARGET },
+    {
+      title: week?.work != null ? 'Доступность в рабочее время, 7 дней' : 'Доступность за 7 дней',
+      value: pctText(week?.work ?? week?.all),
+      hint: `цель ТЗ — не ниже ${TARGET} % в 8:00–20:00 · проверок: ${week?.checks ?? 0}${week?.planned ? ` · плановые работы не считаются (${week.planned})` : ''}`,
+      good: (week?.work ?? week?.all ?? 100) >= TARGET,
+    },
     { title: 'Время ответа API, p95 за час', value: `${data.hour.p95.toLocaleString('ru-RU')} мс`, hint: `медиана ${data.hour.p50} мс · p99 ${data.hour.p99} мс`, good: data.hour.p95 < 500 },
     { title: 'Ошибки сервера (5xx) за сутки', value: String(data.day.errors5xx), hint: `запросов за сутки: ${data.day.requests.toLocaleString('ru-RU')}`, good: data.day.errors5xx === 0 },
     { title: 'Резервная копия', value: data.backup.ageHours === null ? 'нет' : `${data.backup.ageHours} ч назад`, hint: data.backup.last ? fmtDateTime(data.backup.last) : 'не делалась', good: data.backup.ageHours !== null && data.backup.ageHours <= 25 },
@@ -153,6 +160,17 @@ export default function MonitoringPage() {
             ))
           ) : (
             <div className="faint" style={{ fontSize: 13.5 }}>Инцидентов не было</div>
+          )}
+          {data.availability.maintenance.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontWeight: 600, fontSize: 13.5 }}>Плановые работы — в расчёт доступности не входят</div>
+              {data.availability.maintenance.map((m) => (
+                <div key={m.start} className="faint" style={{ fontSize: 13 }}>
+                  выкатка версии {m.version ?? '—'}: {fmtDateTime(m.start)}
+                  {m.end ? ` — ${new Date(m.end).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}` : ' (идёт)'}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

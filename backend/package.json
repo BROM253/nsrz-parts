@@ -1,6 +1,6 @@
 {
   "name": "nsrz-backend",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Сервер «НСРЗ. Заказ запчастей»: REST API, панель НСРЗ, раздача веб-клиентов",
   "private": true,
   "license": "UNLICENSED",

@@ -1,4 +1,7 @@
 import { INestApplication } from '@nestjs/common';
+import { mkdtempSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import request from 'supertest';
 import { MonitoringService } from '../src/monitoring/monitoring.service';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -97,6 +100,27 @@ describe('Поддержка и мониторинг (этап 7)', () => {
       await sales.get('/admin/monitoring').expect(403);
       await owner1.get('/admin/monitoring').expect(403);
       await request(app.getHttpServer()).get('/api/admin/monitoring').expect(401);
+    });
+
+    it('доступность: простой во время плановых работ (выкатки) не считается, настоящий сбой — считается', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'nsrz-monitoring-'));
+      const min = (n: number) => new Date(Date.now() - n * 60_000).toISOString();
+      const check = (t: string, ok: boolean) => JSON.stringify({ t, local: { ok, ms: 5 }, public: { ok, ms: 300 } });
+      // 10 проверок: 2 неудачные во время выкатки, 1 неудачная — настоящий сбой
+      const lines = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((n) => check(min(n), !(n === 6 || n === 5 || n === 2)));
+      writeFileSync(join(dir, `uptime-${new Date().toISOString().slice(0, 10)}.jsonl`), lines.join('\n') + '\n');
+      writeFileSync(join(dir, 'maintenance.jsonl'), [JSON.stringify({ event: 'start', at: min(6.5), version: '9.9.9' }), JSON.stringify({ event: 'end', at: min(5.2) })].join('\n') + '\n');
+      process.env.MONITORING_DIR = dir;
+      try {
+        const a = app.get(MonitoringService).availability();
+        // окно: начало выкатки (6,5 мин назад) — конец (5,2) + 2 минуты прогрева → проверки 6, 5 и 4 мин назад исключены
+        expect(a.day!.planned).toBe(3);
+        expect(a.day!.checks).toBe(7);
+        expect(a.day!.all).toBe(85.7); // 6 из 7 — настоящий сбой (2 мин назад) остаётся в расчёте
+        expect(a.maintenance[0].version).toBe('9.9.9');
+      } finally {
+        delete process.env.MONITORING_DIR;
+      }
     });
 
     it('сбой кода попадает в журнал ошибок мониторинга, а клиенту не раскрываются подробности', async () => {
