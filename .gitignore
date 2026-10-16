@@ -20,3 +20,4 @@ qa/load/results/*.json
 qa/load/results/*.log
 qa/report/out/
 qa/smoke/results/*.json
+qa/docs/out/

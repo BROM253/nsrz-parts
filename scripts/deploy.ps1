@@ -28,7 +28,7 @@ if ($SkipTests) { Write-Host '  пропущено (-SkipTests)' } else { Run '�
 
 Step 2 'Резервная копия рабочей базы (точка отката)'
 Run 'Резервная копия' 'npm run -s db:backup' $backend 'deploy-backup.log'
-Get-Content "$logs\deploy-backup.log" -Tail 1
+Get-Content "$logs\deploy-backup.log" -Tail 1 -Encoding UTF8
 
 Step 3 'Сборка сайта и сервера'
 Run 'Сборка сайта' 'npm run build' (Join-Path $root 'web') 'deploy-web.log'

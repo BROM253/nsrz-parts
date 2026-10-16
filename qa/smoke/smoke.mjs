@@ -32,7 +32,17 @@ async function check(id, title, fn) {
 const assert = (cond, msg) => {
   if (!cond) throw new Error(msg);
 };
-const get = (path, init = {}) => fetch(BASE + path, { ...init, signal: AbortSignal.timeout(60_000) });
+/** Сетевой обрыв (не ответ сервера) повторяется до двух раз — канал через туннель бывает нестабилен. */
+async function get(path, init = {}) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch(BASE + path, { ...init, signal: AbortSignal.timeout(60_000) });
+    } catch (e) {
+      if (attempt >= 3) throw new Error(`сеть: ${e.cause?.code ?? e.message}`);
+      await new Promise((r) => setTimeout(r, 3_000));
+    }
+  }
+}
 const json = async (path, token, init = {}) => {
   const res = await get(path, { ...init, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init.headers ?? {}) } });
   const body = await res.json().catch(() => null);
@@ -123,10 +133,14 @@ await check('S-11', 'Корзина: добавить и вернуть как �
   const before = (await json('/api/cart', owner.accessToken)).body;
   const part = (await json('/api/parts?q=' + encodeURIComponent('Подшипник насоса'), owner.accessToken)).body.items[0];
   const had = before.items.find((i) => i.part.id === part.id);
-  const add = await json('/api/cart/items', owner.accessToken, { method: 'POST', body: JSON.stringify({ partId: part.id, quantity: 1 }) });
-  assert(add.status === 201, `добавление: ${add.status}`);
-  if (had) await json(`/api/cart/items/${part.id}`, owner.accessToken, { method: 'PUT', body: JSON.stringify({ quantity: had.quantity }) });
-  else await json(`/api/cart/items/${part.id}`, owner.accessToken, { method: 'DELETE' });
+  try {
+    const add = await json('/api/cart/items', owner.accessToken, { method: 'POST', body: JSON.stringify({ partId: part.id, quantity: 1 }) });
+    assert(add.status === 201, `добавление: ${add.status}`);
+  } finally {
+    // корзина возвращается как была, даже если проверка оборвалась
+    if (had) await json(`/api/cart/items/${part.id}`, owner.accessToken, { method: 'PUT', body: JSON.stringify({ quantity: had.quantity }) });
+    else await json(`/api/cart/items/${part.id}`, owner.accessToken, { method: 'DELETE' });
+  }
   const after = (await json('/api/cart', owner.accessToken)).body;
   assert(after.count === before.count, `корзина не вернулась: было ${before.count}, стало ${after.count}`);
 });
@@ -148,18 +162,31 @@ await check('S-14', 'Защита: без входа — 401, судовладе
 });
 
 // ── Браузеры ─────────────────────────────────────────────────────
+/**
+ * Бесплатный tuna при первом заходе из браузера показывает свою страницу «Вы собираетесь посетить… — Посетить».
+ * Проверки проходят её так же, как пользователь: нажимают «Посетить» (дальше tuna помнит выбор).
+ */
+async function passTunaWarning(page) {
+  if ((await page.title()) !== 'Требуется подтверждение') return '';
+  await page.getByRole('button', { name: 'Посетить' }).click();
+  await page.waitForLoadState('domcontentloaded');
+  return 'страница tuna «Посетить» пройдена; ';
+}
+
 if (!API_ONLY) {
   await check('S-15', 'Сайт в браузере (Edge): вход по демо-кнопке → каталог → выход', async () => {
     const browser = await chromium.launch({ channel: 'msedge' });
     try {
       const page = await browser.newPage({ locale: 'ru-RU' });
-      await page.goto(BASE + '/login', { timeout: 60_000 });
-      await page.getByRole('button', { name: 'Черноморский флот' }).click({ timeout: 30_000 });
-      const code = (await page.locator('.demo-hint b').textContent({ timeout: 30_000 })).trim();
+      await page.goto(BASE + '/login', { timeout: 120_000 });
+      const note = await passTunaWarning(page);
+      await page.getByRole('button', { name: 'Черноморский флот' }).click({ timeout: 120_000 });
+      const code = (await page.locator('.demo-hint b').textContent({ timeout: 120_000 })).trim();
       await page.getByLabel('Цифра 1').fill(code);
-      await page.getByRole('heading', { name: 'Какая деталь нужна?' }).waitFor({ timeout: 30_000 });
+      await page.getByRole('heading', { name: 'Какая деталь нужна?' }).waitFor({ timeout: 120_000 });
       await page.getByRole('button', { name: 'Выйти из аккаунта' }).click();
-      await page.waitForURL(/\/login/, { timeout: 30_000 });
+      await page.waitForURL(/\/login/, { timeout: 120_000 });
+      return note.replace(/; $/, '');
     } finally {
       await browser.close();
     }
@@ -171,8 +198,9 @@ if (!API_ONLY) {
       const page = await ctx.newPage();
       const started = Date.now();
       await page.goto(BASE + '/m/', { timeout: 120_000 });
+      const note = await passTunaWarning(page);
       await page.locator('flt-glass-pane, flutter-view').first().waitFor({ state: 'attached', timeout: 120_000 });
-      return `интерфейс за ${((Date.now() - started) / 1000).toFixed(1)} с`;
+      return `${note}интерфейс за ${((Date.now() - started) / 1000).toFixed(1)} с`;
     } finally {
       await browser.close();
     }
@@ -182,9 +210,11 @@ if (!API_ONLY) {
     try {
       const ctx = await browser.newContext({ ...devices['Pixel 7'], locale: 'ru-RU' });
       const page = await ctx.newPage();
-      await page.goto(BASE + '/app', { timeout: 60_000 });
-      const href = await page.locator('a[href*=".apk"]').first().getAttribute('href', { timeout: 30_000 });
+      await page.goto(BASE + '/app', { timeout: 120_000 });
+      const note = await passTunaWarning(page);
+      const href = await page.locator('a[href*=".apk"]').first().getAttribute('href', { timeout: 120_000 });
       assert(href?.includes('nsrz-parts'), 'нет ссылки на APK');
+      return note.replace(/; $/, '');
     } finally {
       await browser.close();
     }
