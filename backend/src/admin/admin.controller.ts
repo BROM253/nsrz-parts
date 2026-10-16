@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, Injectable, Module, Param, 
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Length, MaxLength } from 'class-validator';
-import { Roles } from '../common/auth.decorators';
+import { AuthUser, CurrentUser, Roles } from '../common/auth.decorators';
 import { STAFF_ROLES } from '../common/domain';
 import { formatPhone, normalizeLogin } from '../common/text';
 import { PrismaService } from '../prisma/prisma.service';
@@ -69,7 +69,18 @@ export class AdminService {
     return { id: user.id };
   }
 
-  async updateUser(id: string, dto: UpdateUserDto) {
+  async updateUser(id: string, dto: UpdateUserDto, actor: AuthUser) {
+    const losesAdmin = dto.isActive === false || (dto.role !== undefined && dto.role !== Role.ADMIN);
+    if (losesAdmin) {
+      if (id === actor.id) {
+        throw new BadRequestException('Нельзя отключить или понизить собственную учётную запись — попросите другого администратора');
+      }
+      const target = await this.prisma.user.findUnique({ where: { id } });
+      if (target?.role === Role.ADMIN && target.isActive) {
+        const admins = await this.prisma.user.count({ where: { role: Role.ADMIN, isActive: true } });
+        if (admins <= 1) throw new BadRequestException('Это последний администратор — система останется без управления');
+      }
+    }
     await this.prisma.user.update({ where: { id }, data: dto });
     if (dto.isActive === false) {
       await this.prisma.refreshToken.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } });
@@ -131,8 +142,8 @@ export class AdminController {
 
   @Roles(Role.ADMIN)
   @Patch('users/:id')
-  updateUser(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto) {
-    return this.admin.updateUser(id, dto);
+  updateUser(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateUserDto, @CurrentUser() actor: AuthUser) {
+    return this.admin.updateUser(id, dto, actor);
   }
 
   @Roles(...STAFF_ROLES)

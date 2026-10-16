@@ -3,7 +3,7 @@ import { Availability } from '@prisma/client';
 import { parse } from 'csv-parse/sync';
 import ExcelJS from 'exceljs';
 import { AuthUser } from '../common/auth.decorators';
-import { numberKey } from '../common/text';
+import { csvCell, numberKey } from '../common/text';
 import { mapPart, partInclude, PartQuery, partWhere } from '../catalog/catalog.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -107,8 +107,11 @@ export class StockService {
       throw new BadRequestException('Нужны столбцы «каталожный номер» и «количество». Скачайте шаблон в панели.');
     }
 
-    const parts = await this.prisma.part.findMany({ select: { id: true, catalogNumber: true } });
+    const parts = await this.prisma.part.findMany({
+      select: { id: true, catalogNumber: true, name: true, unit: true, stock: { select: { reserved: true } } },
+    });
     const byKey = new Map(parts.map((p) => [numberKey(p.catalogNumber), p.id]));
+    const byId = new Map(parts.map((p) => [p.id, p]));
 
     const errors: { row: number; message: string }[] = [];
     const updates: { partId: number; quantity: number; availability?: Availability }[] = [];
@@ -156,7 +159,20 @@ export class StockService {
       }),
     ]);
 
-    return { fileName: name, rowsTotal: updates.length + errors.length, rowsUpdated: updates.length, rowsFailed: errors.length, errors: errors.slice(0, 50) };
+    // как при ручном изменении: склад должен увидеть, что остатка не хватает на уже принятые заказы
+    const warnings = updates
+      .map((u) => ({ u, p: byId.get(u.partId)! }))
+      .filter(({ u, p }) => (p.stock?.reserved ?? 0) > u.quantity)
+      .map(({ u, p }) => `«${p.name}» (${p.catalogNumber}): на складе ${u.quantity} ${p.unit}, а в активных заказах зарезервировано ${p.stock!.reserved}. Проверьте заказы в очереди.`);
+
+    return {
+      fileName: name,
+      rowsTotal: updates.length + errors.length,
+      rowsUpdated: updates.length,
+      rowsFailed: errors.length,
+      errors: errors.slice(0, 50),
+      warnings: warnings.slice(0, 50),
+    };
   }
 
   async imports() {
@@ -177,7 +193,7 @@ export class StockService {
     const lines = [
       'каталожный номер;наименование;количество;статус',
       ...parts.map((p) =>
-        [p.catalogNumber, `"${p.name.replace(/"/g, '""')}"`, p.stock?.quantity ?? 0, titles[p.stock?.availability ?? 'OUT_OF_STOCK']].join(';'),
+        [p.catalogNumber, p.name, p.stock?.quantity ?? 0, titles[p.stock?.availability ?? 'OUT_OF_STOCK']].map(csvCell).join(';'),
       ),
     ];
     return '﻿' + lines.join('\r\n');

@@ -50,23 +50,27 @@ export class AuthService {
       throw new NotFoundException('Пользователь не найден. Для подключения обратитесь в отдел продаж НСРЗ.');
     }
 
-    const last = await this.prisma.authCode.findFirst({ where: { login: value }, orderBy: { createdAt: 'desc' } });
     const resendAfter = this.devCodes ? RESEND_AFTER_SEC_DEMO : RESEND_AFTER_SEC;
-    if (last && process.env.NODE_ENV !== 'test') {
-      const passed = (Date.now() - last.createdAt.getTime()) / 1000;
-      if (passed < resendAfter) {
-        throw new HttpException(
-          { statusCode: 429, message: `Новый код можно запросить через ${Math.ceil(resendAfter - passed)} с` },
-          HttpStatus.TOO_MANY_REQUESTS,
-        );
-      }
-    }
-
     const code = String(randomInt(1000, 10000));
-    // старые коды этого логина больше не действуют
-    await this.prisma.authCode.updateMany({ where: { login: value, consumedAt: null }, data: { consumedAt: new Date() } });
-    await this.prisma.authCode.create({
-      data: { login: value, codeHash: this.hashCode(value, code), expiresAt: new Date(Date.now() + CODE_TTL_SEC * 1000) },
+    // Запросы кода на один логин — строго по очереди (advisory-lock): иначе два параллельных запроса
+    // оба проходят проверку «не чаще раза в 30 с» и уходят два SMS (найдено нагрузочным тестом).
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${'auth:' + value}))`;
+      const last = await tx.authCode.findFirst({ where: { login: value }, orderBy: { createdAt: 'desc' } });
+      if (last && process.env.NODE_ENV !== 'test') {
+        const passed = (Date.now() - last.createdAt.getTime()) / 1000;
+        if (passed < resendAfter) {
+          throw new HttpException(
+            { statusCode: 429, message: `Новый код можно запросить через ${Math.ceil(resendAfter - passed)} с` },
+            HttpStatus.TOO_MANY_REQUESTS,
+          );
+        }
+      }
+      // старые коды этого логина больше не действуют
+      await tx.authCode.updateMany({ where: { login: value, consumedAt: null }, data: { consumedAt: new Date() } });
+      await tx.authCode.create({
+        data: { login: value, codeHash: this.hashCode(value, code), expiresAt: new Date(Date.now() + CODE_TTL_SEC * 1000) },
+      });
     });
 
     const text = `Код входа в «НСРЗ. Заказ запчастей»: ${code}. Никому его не сообщайте.`;
@@ -90,12 +94,18 @@ export class AuthService {
       orderBy: { createdAt: 'desc' },
     });
     if (!record) throw new BadRequestException('Код устарел. Запросите новый.');
-    if (record.attempts >= MAX_ATTEMPTS) {
+    // Попытка сначала «занимается» атомарным условным UPDATE и только потом проверяется код:
+    // одновременные запросы не могут проверить больше MAX_ATTEMPTS вариантов (защита от перебора).
+    const slot = await this.prisma.authCode.updateMany({
+      where: { id: record.id, attempts: { lt: MAX_ATTEMPTS } },
+      data: { attempts: { increment: 1 } },
+    });
+    if (slot.count === 0) {
       throw new HttpException({ statusCode: 429, message: 'Слишком много попыток. Запросите новый код.' }, 429);
     }
     if (record.codeHash !== this.hashCode(value, code.trim())) {
-      await this.prisma.authCode.update({ where: { id: record.id }, data: { attempts: { increment: 1 } } });
-      const left = MAX_ATTEMPTS - record.attempts - 1;
+      const { attempts } = await this.prisma.authCode.findUniqueOrThrow({ where: { id: record.id }, select: { attempts: true } });
+      const left = MAX_ATTEMPTS - attempts;
       throw new BadRequestException(left > 0 ? `Неверный код. Осталось попыток: ${left}` : 'Неверный код. Запросите новый.');
     }
 

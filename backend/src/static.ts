@@ -34,6 +34,24 @@ const REVALIDATE = 'no-cache';
 type CachePolicy = (relPath: string) => string;
 
 const DAY = 'public, max-age=86400';
+
+/**
+ * Политика безопасности содержимого для сайта (React): скрипты — только свои файлы, без inline и eval,
+ * поэтому внедрённый в данные HTML не исполнится. Стили inline разрешены — их вставляет Ant Design.
+ * Flutter-версии (/m/) и Swagger нужны inline-скрипты и WebAssembly — для них политика не ставится.
+ */
+export const SITE_CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join('; ');
 const webCache: CachePolicy = (p) => (p.startsWith('/assets/') ? YEAR : p.startsWith('/img/') ? DAY : REVALIDATE);
 // движок CanvasKit и шрифты меняются только с версией Flutter; main.dart.js — при каждой сборке
 const mobileCache: CachePolicy = (p) => (p.startsWith('/canvaskit/') || p.startsWith('/assets/fonts/') || p.startsWith('/icons/') ? MONTH : REVALIDATE);
@@ -108,6 +126,7 @@ export function serveClients(app: NestExpressApplication) {
           // SPA: любой другой адрес (например, /panel/stock) — это страница React-приложения
           if ((req.method === 'GET' || req.method === 'HEAD') && req.accepts('html')) {
             res.setHeader('Cache-Control', REVALIDATE);
+            res.setHeader('Content-Security-Policy', SITE_CSP);
             return res.sendFile(indexHtml);
           }
           next();

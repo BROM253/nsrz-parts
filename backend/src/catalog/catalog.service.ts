@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Availability, Prisma } from '@prisma/client';
 import { DELIVERY_METHODS, REJECT_REASONS, STATUS_TITLES, stockView } from '../common/domain';
-import { numberKey, searchText } from '../common/text';
+import { escapeLike, numberKey, searchText } from '../common/text';
 import { PrismaService } from '../prisma/prisma.service';
 
 export const partInclude = {
@@ -48,7 +48,7 @@ export function partWhere(prisma: PrismaService, query: PartQuery): Prisma.PartW
     const key = numberKey(q);
     const or: Prisma.PartWhereInput[] = [
       // каждое слово должно встретиться в наименовании или описании: «фильтр топливный»
-      { AND: words.map((w) => ({ searchText: { contains: w } })) },
+      { AND: words.map((w) => ({ searchText: { contains: escapeLike(w) } })) },
     ];
     if (key.length >= 2) or.push({ searchKey: { contains: key } });
     and.push({ OR: or });

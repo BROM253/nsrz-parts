@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:start": "node scripts/postgres.mjs",
     "db:studio": "prisma studio",
-    "db:images": "ts-node --transpile-only scripts/set-part-images.ts"
+    "db:images": "ts-node --transpile-only scripts/set-part-images.ts",
+    "db:backup": "ts-node --transpile-only scripts/backup.ts backup",
+    "db:restore": "ts-node --transpile-only scripts/backup.ts restore"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.7",

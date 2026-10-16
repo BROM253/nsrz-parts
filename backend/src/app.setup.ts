@@ -9,8 +9,10 @@ import { serveClients } from './static';
 
 /** Общая настройка приложения — для запуска и для автотестов. */
 export function configureApp(app: NestExpressApplication) {
-  // за туннелем реальный адрес клиента приходит в X-Forwarded-For — нужен для ограничения частоты запросов
-  app.set('trust proxy', true);
+  // За туннелем реальный адрес клиента приходит в X-Forwarded-For — он нужен для ограничения частоты запросов.
+  // Доверяем заголовку только от туннеля на этом же ПК (127.0.0.1 / ::1): телефон в домашней сети
+  // или клиент через запасной туннель не может подменить свой IP и обойти ограничение.
+  app.set('trust proxy', 'loopback');
   app.setGlobalPrefix('api');
   app.use(
     helmet({

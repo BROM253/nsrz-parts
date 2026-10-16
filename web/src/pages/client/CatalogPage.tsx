@@ -105,6 +105,7 @@ export default function CatalogPage() {
 
   // поиск с задержкой 300 мс — не дёргаем сервер на каждую букву
   useEffect(() => {
+    if (text.trim() === q) return; // строка уже в адресе — менять нечего
     const t = setTimeout(() => update({ q: text.trim() || null, page: null }), 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,8 +113,10 @@ export default function CatalogPage() {
 
   const update = (patch: Record<string, string | null>) =>
     setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
+      () => {
+        // Берём адрес на момент вызова, а не параметры прошлой отрисовки: иначе отложенный поиск
+        // затирал фильтр, выбранный в эти 300 мс (дефект найден UI-автотестом ФТ-11).
+        const next = new URLSearchParams(window.location.search);
         for (const [k, v] of Object.entries(patch)) {
           if (v === null || v === '') next.delete(k);
           else next.set(k, v);

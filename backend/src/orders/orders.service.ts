@@ -18,7 +18,7 @@ import {
   STATUS_TRANSITIONS,
   stockView,
 } from '../common/domain';
-import { formatPhone } from '../common/text';
+import { csvCell, escapeLike, formatPhone } from '../common/text';
 import { partInclude } from '../catalog/catalog.service';
 import { quantityProblem } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -220,9 +220,10 @@ export class OrdersService {
     const query = q?.trim();
     if (query) {
       const digits = query.replace(/\D/g, '');
+      const text = escapeLike(query);
       where.OR = [
-        { company: { name: { contains: query, mode: 'insensitive' } } },
-        { vessel: { name: { contains: query, mode: 'insensitive' } } },
+        { company: { name: { contains: text, mode: 'insensitive' } } },
+        { vessel: { name: { contains: text, mode: 'insensitive' } } },
         ...(digits ? [{ number: { contains: digits } }] : []),
       ];
     }
@@ -250,6 +251,17 @@ export class OrdersService {
     const order = await this.prisma.order.findUnique({ where: { id }, include: { items: true, user: true } });
     if (!order) throw new NotFoundException('Заказ не найден');
 
+    // Второй сотрудник нажал ту же кнопку по устаревшей очереди: заказ уже в этом статусе или дальше.
+    // Это не ошибка ввода, а одновременная работа — отвечаем так же, как при гонке ниже (409).
+    const step = (s: OrderStatus) => STATUS_STEPS.indexOf(s);
+    const alreadyThere =
+      order.status === input.status || (input.status !== OrderStatus.REJECTED && step(order.status) > step(input.status));
+    if (alreadyThere && !STATUS_TRANSITIONS[order.status].includes(input.status)) {
+      throw conflict(
+        `Заказ уже в статусе «${STATUS_TITLES[order.status]}» — его изменил другой сотрудник. Обновите страницу.`,
+        { code: 'STATUS_CHANGED', status: order.status },
+      );
+    }
     if (!STATUS_TRANSITIONS[order.status].includes(input.status)) {
       throw new BadRequestException(
         `Нельзя перевести заказ из статуса «${STATUS_TITLES[order.status]}» в «${STATUS_TITLES[input.status]}»`,
@@ -309,11 +321,7 @@ export class OrdersService {
             new Date(iso),
           )
         : '';
-    const cell = (v: unknown) => {
-      const s = String(v ?? '');
-      return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const row = (...cells: unknown[]) => cells.map(cell).join(';');
+    const row = (...cells: unknown[]) => cells.map(csvCell).join(';');
     const num = (v: number) => v.toFixed(2).replace('.', ',');
 
     const lines = [

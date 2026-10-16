@@ -14,6 +14,14 @@ export class PrismaExceptionFilter extends BaseExceptionFilter {
         error: 'Conflict',
       });
     }
+    if (exception.code === 'P2003') {
+      // ссылка на несуществующую запись (компания, тип судна, родительская категория) — ошибка ввода, а не сбой сервера
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Связанная запись не найдена — проверьте выбранную компанию или справочник',
+        error: 'Bad Request',
+      });
+    }
     if (exception.code === 'P2025') {
       return res.status(HttpStatus.NOT_FOUND).json({
         statusCode: HttpStatus.NOT_FOUND,

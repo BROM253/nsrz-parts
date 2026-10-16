@@ -67,8 +67,8 @@ describe('Панель НСРЗ: обработка заказов, остатк
       ]);
       const statuses = [a.status, b.status].sort();
       expect(statuses[0]).toBe(200);
-      // второй либо столкнулся с первым (409), либо уже увидел новый статус (400 — переход не нужен)
-      expect([400, 409]).toContain(statuses[1]);
+      // второй получает 409 «изменил другой сотрудник» — и при гонке, и если уже видит новый статус
+      expect(statuses[1]).toBe(409);
       const history = await prisma.orderStatusHistory.count({ where: { orderId, status: 'ASSEMBLING' } });
       expect(history).toBe(1);
     });

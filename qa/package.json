@@ -1,0 +1,19 @@
+{
+  "name": "nsrz-qa",
+  "private": true,
+  "description": "Этап 5 — тестирование: UI-автотесты (Playwright), нагрузка (k6), проверки безопасности",
+  "scripts": {
+    "stand": "node ../backend/scripts/qa-stand.mjs",
+    "stand:seed": "node ../backend/scripts/qa-stand.mjs --seed",
+    "test:ui": "playwright test",
+    "test:security": "node security/probe.mjs && node security/verify-fixes.mjs",
+    "load": "D:/dev/k6/k6.exe run -e PROFILE=load load/scenario.js",
+    "load:stress": "D:/dev/k6/k6.exe run -e PROFILE=stress load/scenario.js",
+    "load:spike": "D:/dev/k6/k6.exe run -e PROFILE=spike load/scenario.js",
+    "load:capacity": "D:/dev/k6/k6.exe run load/capacity.js",
+    "load:race": "D:/dev/k6/k6.exe run load/race.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

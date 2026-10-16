@@ -5,12 +5,17 @@ import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from '../common/auth.decorators';
+import { BackupModule, BackupService } from '../backup/backup.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('Служебное')
 @Controller()
 export class HealthController {
-  constructor(private readonly prisma: PrismaService, private readonly config: ConfigService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+    private readonly backup: BackupService,
+  ) {}
 
   /** Проверка доступности (мониторинг, ТЗ п. 4.4) и настройки для клиентов. */
   @Public()
@@ -28,6 +33,7 @@ export class HealthController {
       app: 'НСРЗ. Заказ запчастей',
       version: process.env.npm_package_version ?? '1.0.0',
       demoCodes: this.config.get('AUTH_DEV_CODES') === 'true',
+      lastBackup: this.backup.lastBackupAt()?.toISOString() ?? null, // ТЗ п. 4.4: копия не старше суток
       time: new Date().toISOString(),
     };
   }
@@ -62,5 +68,5 @@ export class AddressController {
   }
 }
 
-@Module({ controllers: [HealthController, AddressController] })
+@Module({ imports: [BackupModule], controllers: [HealthController, AddressController] })
 export class HealthModule {}

@@ -9,3 +9,12 @@ dist/
 /release/
 # Логи
 *.log
+# QA-стенд и отчёты автотестов
+dist-qa/
+qa/node_modules/
+qa/test-results/
+qa/playwright-report/
+# сырые метрики k6 (большие) — в репозитории только текстовые итоги *.txt
+qa/load/results/*.csv
+qa/load/results/*.json
+qa/load/results/*.log

@@ -1,6 +1,6 @@
 import { DownloadOutlined, HistoryOutlined, SaveOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Drawer, Input, InputNumber, Modal, Select, Table, Upload } from 'antd';
+import { Alert, App, Button, Drawer, Input, InputNumber, Modal, Select, Table, Upload } from 'antd';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { api, ApiError } from '../../api/client';
@@ -18,6 +18,7 @@ interface ImportResult {
   rowsUpdated: number;
   rowsFailed: number;
   errors: { row: number; message: string }[];
+  warnings?: string[];
 }
 
 const AV_OPTIONS = [
@@ -181,6 +182,15 @@ export default function StockPage() {
               <div><div className="faint">Обновлено</div><b style={{ fontSize: 22, color: 'var(--success)' }}>{result.rowsUpdated}</b></div>
               <div><div className="faint">С ошибками</div><b style={{ fontSize: 22, color: result.rowsFailed ? 'var(--danger)' : undefined }}>{result.rowsFailed}</b></div>
             </div>
+            {(result.warnings?.length ?? 0) > 0 && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message="Остатка меньше, чем зарезервировано по заказам"
+                description={<ul style={{ margin: 0, paddingLeft: 18 }}>{result.warnings!.map((w) => <li key={w}>{w}</li>)}</ul>}
+              />
+            )}
             {result.errors.length > 0 && (
               <Table size="small" rowKey="row" pagination={false} dataSource={result.errors} columns={[{ title: 'Строка', dataIndex: 'row', width: 80 }, { title: 'Ошибка', dataIndex: 'message' }]} />
             )}

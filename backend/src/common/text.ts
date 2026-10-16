@@ -31,6 +31,21 @@ export function searchText(value: string | null | undefined): string {
   return (value ?? '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
 }
 
+/** Символы шаблона LIKE (% _ \) ищутся буквально: «%» не должен находить весь каталог. */
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
+ * Ячейка CSV, которую Excel не примет за формулу (CSV-инъекция, OWASP):
+ * текст, начинающийся с = + - @ или табуляции, получает апостроф в начале.
+ */
+export function csvCell(value: unknown): string {
+  let s = String(value ?? '');
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 export function maskLogin(kind: LoginKind, value: string): string {
   if (kind === 'email') {
     const [name, domain] = value.split('@');
