@@ -10,6 +10,8 @@ import '../core/models.dart';
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/fly_to_cart.dart';
+import '../widgets/part_image.dart';
 
 class PartScreen extends ConsumerStatefulWidget {
   const PartScreen({super.key, required this.id});
@@ -21,16 +23,20 @@ class PartScreen extends ConsumerStatefulWidget {
 
 class _PartScreenState extends ConsumerState<PartScreen> {
   int _qty = 1;
+  final _imageKey = GlobalKey();
+  final _cartKey = GlobalKey();
   bool _busy = false;
 
   Future<void> _add(Part p) async {
     setState(() => _busy = true);
     try {
-      await ref.read(cartProvider.notifier).add(p.id, _qty);
+      final amount = _qty;
+      await ref.read(cartProvider.notifier).add(p.id, amount);
+      if (mounted) flyToCart(context, from: _imageKey, to: _cartKey, imageUrl: p.imageUrl, icon: p.categoryIcon, quantity: amount);
       HapticFeedback.mediumImpact();
       ref.invalidate(partProvider(p.id));
       if (!mounted) return;
-      showMessage(context, 'Добавлено: $_qty ${p.unit}', action: SnackBarAction(label: 'В корзину', textColor: C.accent, onPressed: () => context.go('/cart')));
+      showMessage(context, 'Добавлено: $amount ${p.unit}', action: SnackBarAction(label: 'В корзину', textColor: C.accent, onPressed: () => context.go('/cart')));
       setState(() => _qty = 1);
     } on ApiException catch (e) {
       if (mounted) showMessage(context, e.message, error: true);
@@ -43,10 +49,25 @@ class _PartScreenState extends ConsumerState<PartScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(partProvider(widget.id));
     final inCart = ref.watch(cartProvider).value?.quantityOf(widget.id) ?? 0;
+    final inCartTotal = ref.watch(cartProvider).value?.count ?? 0;
     final user = ref.watch(sessionProvider).user;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Запчасть')),
+      appBar: AppBar(title: const Text('Запчасть'), actions: [
+        // значок корзины: сюда прилетает товар, по нажатию — переход в корзину
+        ValueListenableBuilder<int>(
+          valueListenable: cartLanded,
+          builder: (context, landed, _) => IconButton(
+            key: _cartKey,
+            tooltip: 'Корзина',
+            onPressed: () => context.go('/cart'),
+            icon: Badge(isLabelVisible: inCartTotal > 0, label: Text('$inCartTotal'), child: const Icon(Icons.shopping_cart_outlined))
+                .animate(key: ValueKey(landed))
+                .scaleXY(begin: landed > 0 ? 1.35 : 1, end: 1, duration: 520.ms, curve: Curves.elasticOut),
+          ),
+        ),
+        const SizedBox(width: 6),
+      ]),
       body: async.when(
         loading: () => const SkeletonList(count: 3, height: 140),
         error: (e, _) => ErrorView(e, onRetry: () => ref.invalidate(partProvider(widget.id))),
@@ -61,20 +82,21 @@ class _PartScreenState extends ConsumerState<PartScreen> {
                   child: OfflineBanner(p.offlineSince!, onRetry: () => ref.invalidate(partProvider(widget.id))),
                 ),
               Card(
-                child: Padding(
+                clipBehavior: Clip.antiAlias,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  // картинка прилетает из карточки каталога (Hero) и улетает в корзину при добавлении
+                  Hero(
+                    tag: 'part-img-${p.id}',
+                    child: KeyedSubtree(key: _imageKey, child: PartImage(url: p.imageUrl, icon: p.categoryIcon, height: 240, radius: 0)),
+                  ),
+                  Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      Hero(tag: 'part-icon-${p.id}', child: CategoryIcon(p.categoryIcon, size: 72)),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: C.primaryTint, borderRadius: BorderRadius.circular(999)),
-                          child: Text(p.categoryName, style: const TextStyle(color: C.primaryDark, fontWeight: FontWeight.w600, fontSize: 13)),
-                        ).animate().fadeIn(delay: 150.ms),
-                      ),
-                    ]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: C.primaryTint, borderRadius: BorderRadius.circular(999)),
+                      child: Text(p.categoryName, style: const TextStyle(color: C.primaryDark, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ).animate().fadeIn(delay: 150.ms),
                     const SizedBox(height: 16),
                     Text(p.name, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, letterSpacing: -0.4, height: 1.2)).animate().fadeIn(delay: 100.ms).slideY(begin: 0.15),
                     const SizedBox(height: 10),
@@ -83,7 +105,8 @@ class _PartScreenState extends ConsumerState<PartScreen> {
                     _NumberRow('Каталожный номер НСРЗ', p.catalogNumber),
                     if (p.manufacturerPartNumber != null) _NumberRow('Номер производителя', p.manufacturerPartNumber!),
                   ]),
-                ),
+                  ),
+                ]),
               ),
               const SizedBox(height: 12),
               Card(

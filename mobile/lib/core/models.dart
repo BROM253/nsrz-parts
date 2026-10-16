@@ -64,6 +64,7 @@ class StockView {
 class Part {
   final int id;
   final String name;
+  final String? imageUrl;
   final String? description;
   final String catalogNumber;
   final String? manufacturerPartNumber;
@@ -79,6 +80,7 @@ class Part {
   Part.fromJson(Map<String, dynamic> j, {this.offlineSince})
       : id = _n(j['id']).toInt(),
         name = j['name'],
+        imageUrl = j['imageUrl'],
         description = j['description'],
         catalogNumber = j['catalogNumber'],
         manufacturerPartNumber = j['manufacturerPartNumber'],
@@ -206,6 +208,7 @@ class OrderSummary {
 class OrderItem {
   final int partId;
   final String name;
+  final String? imageUrl;
   final String catalogNumber;
   final String unit;
   final int quantity;
@@ -214,6 +217,7 @@ class OrderItem {
   OrderItem.fromJson(Map<String, dynamic> j)
       : partId = _n(j['partId']).toInt(),
         name = j['name'],
+        imageUrl = j['imageUrl'],
         catalogNumber = j['catalogNumber'],
         unit = j['unit'] ?? 'шт.',
         quantity = _n(j['quantity']).toInt(),

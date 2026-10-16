@@ -2,28 +2,28 @@ import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Button, Empty, Input, Pagination, Switch } from 'antd';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api/client';
 import { useCartActions, useDictionaries } from '../../api/hooks';
 import type { Part, PartsPage } from '../../api/types';
 import { useAuth } from '../../auth';
-import { AvailabilityBadge, CategoryIcon, ease, flyToCart, itemVariants, listVariants, Skeleton, SyncPill, Waves } from '../../components/ui';
+import { AvailabilityBadge, ease, flyToCart, itemVariants, listVariants, PartImage, Skeleton, SyncPill, Waves } from '../../components/ui';
 import { money, plural } from '../../format';
 
 function PartCard({ part }: { part: Part }) {
   const navigate = useNavigate();
   const { add } = useCartActions();
   const [added, setAdded] = useState(false);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   const quickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const button = e.currentTarget;
     add.mutate(
       { partId: part.id, quantity: 1 },
       {
         onSuccess: () => {
-          flyToCart(button);
+          flyToCart(imageRef.current, part.imageUrl);
           setAdded(true);
           setTimeout(() => setAdded(false), 1600);
         },
@@ -41,14 +41,14 @@ function PartCard({ part }: { part: Part }) {
           e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`);
         }}
         onClick={() => navigate(`/parts/${part.id}`)} role="link" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && navigate(`/parts/${part.id}`)}>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          <CategoryIcon icon={part.category.icon} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="faint" style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 2 }}>
-              {part.category.name}
-            </div>
-            <h3>{part.name}</h3>
+        <div ref={imageRef} style={{ margin: '-20px -20px 4px' }}>
+          <PartImage src={part.imageUrl} icon={part.category.icon} alt={part.name} height={168} radius={0} style={{ borderRadius: '18px 18px 0 0' }} />
+        </div>
+        <div>
+          <div className="faint" style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 2 }}>
+            {part.category.name}
           </div>
+          <h3>{part.name}</h3>
         </div>
         <div className="numbers">
           <span>
@@ -216,7 +216,7 @@ export default function CatalogPage() {
         {isLoading ? (
           <div className="grid-parts">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} height={230} style={{ borderRadius: 18 }} />
+              <Skeleton key={i} height={340} style={{ borderRadius: 18 }} />
             ))}
           </div>
         ) : data && data.items.length === 0 ? (

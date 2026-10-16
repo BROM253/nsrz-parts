@@ -14,7 +14,8 @@
     "test": "jest --config test/jest-e2e.json --runInBand",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:start": "node scripts/postgres.mjs",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:images": "ts-node --transpile-only scripts/set-part-images.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.7",

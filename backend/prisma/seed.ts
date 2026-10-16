@@ -6,6 +6,9 @@ import { CATEGORIES, COMPANIES, ORDERS, PARTS, USERS, VESSEL_TYPES, VESSELS } fr
 
 const HOUR = 3600 * 1000;
 
+/** Иллюстрация детали: web/public/img/parts/<номер производителя>.svg (рисует scripts/part-images.mjs). */
+export const partImageUrl = (mpn: string) => `/img/parts/${mpn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.svg`;
+
 /** Полностью пересоздаёт демо-данные. Используется командой `npm run db:seed` и автотестами. */
 export async function seed(prisma: PrismaClient) {
   await prisma.$executeRawUnsafe(
@@ -83,6 +86,7 @@ export async function seed(prisma: PrismaClient) {
         price: new Prisma.Decimal(p.price),
         unit: p.unit ?? 'шт.',
         leadTimeDays: p.lead ?? 0,
+        imageUrl: partImageUrl(p.mpn),
         vesselTypes: { create: p.vt.map((t) => ({ vesselTypeId: vesselTypes.get(t)! })) },
         stock: {
           create: {

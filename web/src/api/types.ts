@@ -41,6 +41,7 @@ export interface StockView {
 export interface Part {
   id: number;
   name: string;
+  imageUrl: string | null;
   description?: string | null;
   catalogNumber: string;
   manufacturerPartNumber: string | null;
@@ -110,6 +111,7 @@ export interface OrderSummary {
 export interface OrderItem {
   partId: number;
   name: string;
+  imageUrl?: string | null;
   catalogNumber: string;
   manufacturerPartNumber: string | null;
   unit: string;

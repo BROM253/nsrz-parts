@@ -18,9 +18,21 @@ function CartButton() {
   const { data } = useCart();
   const count = data?.count ?? 0;
   const prev = useRef(count);
+  const flyingUntil = useRef(0);
   const [bump, setBump] = useState(0);
+  // во время «полёта» корзина ждёт приземления товара и подпрыгивает именно тогда
   useEffect(() => {
-    if (count !== prev.current) setBump((b) => b + 1);
+    const onFly = () => (flyingUntil.current = Date.now() + 1800);
+    const onLanded = () => setBump((b) => b + 1);
+    window.addEventListener('nsrz:fly', onFly);
+    window.addEventListener('nsrz:landed', onLanded);
+    return () => {
+      window.removeEventListener('nsrz:fly', onFly);
+      window.removeEventListener('nsrz:landed', onLanded);
+    };
+  }, []);
+  useEffect(() => {
+    if (count !== prev.current && Date.now() > flyingUntil.current) setBump((b) => b + 1);
     prev.current = count;
   }, [count]);
   return (
@@ -35,33 +47,71 @@ function CartButton() {
 }
 
 /** «Полёт в корзину»: при добавлении детали от кнопки к значку корзины летит терракотовая точка. */
+const FLIGHT_SEC = 1.4; // медленно, чтобы перенос товара было видно
+
+type Flight = { id: number; x: number; y: number; tx: number; ty: number; image?: string | null; quantity: number };
+
 function FlyToCart() {
-  const [flights, setFlights] = useState<{ id: number; x: number; y: number; tx: number; ty: number }[]>([]);
+  const [flights, setFlights] = useState<Flight[]>([]);
+  const [plus, setPlus] = useState<{ id: number; x: number; y: number; quantity: number }[]>([]);
   useEffect(() => {
     const on = (e: Event) => {
-      const { x, y } = (e as CustomEvent).detail;
+      const { x, y, image, quantity } = (e as CustomEvent).detail;
       const target = document.getElementById('cart-button')?.getBoundingClientRect();
       if (!target) return;
       const id = Date.now() + Math.random();
-      setFlights((f) => [...f, { id, x, y, tx: target.left + target.width / 2, ty: target.top + target.height / 2 }]);
-      setTimeout(() => setFlights((f) => f.filter((p) => p.id !== id)), 900);
+      const flight = { id, x, y, tx: target.left + target.width / 2, ty: target.top + target.height / 2, image, quantity: quantity ?? 1 };
+      setFlights((f) => [...f, flight]);
+      setTimeout(() => {
+        setFlights((f) => f.filter((p) => p.id !== id));
+        // приземлились: корзина подпрыгивает, над ней всплывает «+N»
+        window.dispatchEvent(new CustomEvent('nsrz:landed'));
+        setPlus((p) => [...p, { id, x: flight.tx, y: flight.ty, quantity: flight.quantity }]);
+        setTimeout(() => setPlus((p) => p.filter((q) => q.id !== id)), 1100);
+      }, FLIGHT_SEC * 1000);
     };
     window.addEventListener('nsrz:fly', on);
     return () => window.removeEventListener('nsrz:fly', on);
   }, []);
+  const size = 84;
   return (
-    <AnimatePresence>
-      {flights.map((p) => (
-        <motion.div
-          key={p.id}
-          className="fly-dot"
-          initial={{ x: p.x - 12, y: p.y - 12, scale: 1, opacity: 1 }}
-          animate={{ x: [p.x - 12, (p.x + p.tx) / 2 - 12, p.tx - 12], y: [p.y - 12, Math.min(p.y, p.ty) - 120, p.ty - 12], scale: [1, 1.2, 0.4], opacity: [1, 1, 0.6] }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.75, ease: [0.5, 0, 0.3, 1] }}
-        />
-      ))}
-    </AnimatePresence>
+    <>
+      <AnimatePresence>
+        {flights.map((p) => {
+          const peak = Math.min(p.y, p.ty) - 160;
+          return (
+            <motion.div
+              key={p.id}
+              className={p.image ? 'fly-item' : 'fly-dot'}
+              style={p.image ? { width: size, height: size * 0.75, backgroundImage: `url(${p.image})` } : undefined}
+              initial={{ x: p.x - size / 2, y: p.y - size * 0.375, scale: 1, rotate: 0, opacity: 1 }}
+              animate={{
+                x: [p.x - size / 2, p.x - size / 2 + (p.tx - p.x) * 0.35, p.tx - size / 2],
+                y: [p.y - size * 0.375, peak, p.ty - size * 0.375],
+                scale: [1, 1.15, 0.22],
+                rotate: [0, -12, 8],
+                opacity: [1, 1, 0.85],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: FLIGHT_SEC, times: [0, 0.45, 1], ease: ['easeOut', 'easeIn'] }}
+            />
+          );
+        })}
+      </AnimatePresence>
+      <AnimatePresence>
+        {plus.map((p) => (
+          <motion.div
+            key={p.id}
+            className="fly-plus"
+            initial={{ x: p.x + 6, y: p.y - 10, opacity: 0, scale: 0.6 }}
+            animate={{ y: p.y - 44, opacity: [0, 1, 1, 0], scale: 1 }}
+            transition={{ duration: 1.05, ease }}
+          >
+            +{p.quantity}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </>
   );
 }
 

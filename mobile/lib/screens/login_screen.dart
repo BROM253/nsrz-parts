@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/api.dart';
 import '../core/providers.dart';
@@ -151,7 +152,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
             ),
             child: Stack(children: [
-              Positioned(right: -30, bottom: -40, child: Icon(Icons.waves_rounded, size: 180, color: Colors.white.withValues(alpha: 0.08))),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   Container(
@@ -172,6 +172,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         style: TextStyle(color: Colors.white.withValues(alpha: 0.88), fontSize: 15, height: 1.45))
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 500.ms),
+                const SizedBox(height: 18),
+                // порт Новороссийска: судно у причала и портальный кран
+                SvgPicture.asset('assets/images/port.svg', height: 120, fit: BoxFit.contain, alignment: Alignment.centerLeft)
+                    .animate()
+                    .fadeIn(delay: 300.ms, duration: 800.ms)
+                    .slideX(begin: -0.12, curve: Curves.easeOutCubic),
               ]),
             ]),
           ),

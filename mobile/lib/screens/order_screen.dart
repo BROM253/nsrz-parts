@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +16,7 @@ import '../core/models.dart';
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/part_image.dart';
 import '../widgets/timeline.dart';
 
 class OrderScreen extends ConsumerStatefulWidget {
@@ -29,6 +31,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
   Timer? _timer;
   bool _exporting = false;
   bool _repeating = false;
+  int _pulse = 0;
 
   @override
   void initState() {
@@ -97,6 +100,16 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(orderProvider(widget.id));
+    // склад сменил статус, пока экран открыт, — сообщение, вибрация и «пульс» значка (как на сайте)
+    ref.listen(orderProvider(widget.id), (prev, next) {
+      final before = prev?.value?.status;
+      final now = next.value;
+      if (before != null && now != null && before != now.status) {
+        HapticFeedback.mediumImpact();
+        showMessage(context, now.status == 'REJECTED' ? 'Заказ ${now.number} отклонён: ${now.rejectReason}' : 'Заказ ${now.number}: «${now.statusTitle}»');
+        setState(() => _pulse++);
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text(async.value?.number ?? 'Заказ'),
@@ -139,7 +152,10 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                     duration: const Duration(milliseconds: 300),
                     transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
                     child: StatusChip(o.status, o.statusTitle, key: ValueKey(o.status)),
-                  ),
+                  )
+                      .animate(key: ValueKey(_pulse), autoPlay: _pulse > 0)
+                      .scaleXY(begin: 1.25, end: 1, duration: 700.ms, curve: Curves.elasticOut)
+                      .shimmer(duration: 1100.ms, color: Colors.white),
                   const SizedBox(height: 8),
                   Text('Оформлен ${dateTime(o.createdAt)} · обновляется автоматически', style: const TextStyle(color: C.text2, fontSize: 13)),
                   const SizedBox(height: 20),
@@ -167,6 +183,8 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: C.border))),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        PartImage(url: i.imageUrl, height: 42, width: 56, radius: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             Text(i.name, style: const TextStyle(fontWeight: FontWeight.w600)),

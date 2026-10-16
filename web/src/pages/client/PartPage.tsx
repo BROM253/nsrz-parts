@@ -2,13 +2,13 @@ import { ArrowLeftOutlined, CheckCircleFilled, CopyOutlined, ShoppingCartOutline
 import { useQuery } from '@tanstack/react-query';
 import { App, Button, Result, Tag, Tooltip } from 'antd';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import { useCart, useCartActions } from '../../api/hooks';
 import type { Part } from '../../api/types';
 import { useAuth } from '../../auth';
-import { AvailabilityBadge, CategoryIcon, ease, flyToCart, Skeleton, Stepper } from '../../components/ui';
+import { AvailabilityBadge, ease, flyToCart, PartImage, Skeleton, Stepper } from '../../components/ui';
 import { fmtDateTime, money } from '../../format';
 
 function Copy({ value }: { value: string }) {
@@ -38,6 +38,7 @@ export default function PartPage() {
   const { add } = useCartActions();
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+  const imageRef = useRef<HTMLDivElement>(null);
 
   const inCart = cart?.items.find((i) => i.part.id === Number(id))?.quantity ?? 0;
   const max = part ? Math.max(0, part.stock.maxOrder - inCart) : 0;
@@ -61,13 +62,13 @@ export default function PartPage() {
 
   const fitsMyFleet = user?.vessels.filter((v) => part.vesselTypes.includes(v.vesselType.name)) ?? [];
 
-  const addToCart = (e: React.MouseEvent) => {
-    const button = e.currentTarget;
+  const addToCart = () => {
+    const amount = qty;
     add.mutate(
       { partId: part.id, quantity: qty },
       {
         onSuccess: () => {
-          flyToCart(button);
+          flyToCart(imageRef.current, part.imageUrl, amount);
           setJustAdded(true);
           setQty(1);
         },
@@ -82,10 +83,10 @@ export default function PartPage() {
       </Button>
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(300px, 1fr)', gap: 24, alignItems: 'start' }} className="two-col">
         <motion.div className="card card-pad" style={{ padding: 32 }} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease }}>
+          <motion.div ref={imageRef} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.45, ease }} style={{ margin: '-32px -32px 24px' }}>
+            <PartImage src={part.imageUrl} icon={part.category.icon} alt={part.name} height={320} radius={0} zoom style={{ borderRadius: '18px 18px 0 0' }} />
+          </motion.div>
           <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <motion.div initial={{ rotate: -12, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
-              <CategoryIcon icon={part.category.icon} big />
-            </motion.div>
             <div style={{ flex: 1, minWidth: 240 }}>
               <Tag bordered={false} style={{ background: 'var(--primary-tint)', color: 'var(--primary-hover)', fontWeight: 600, borderRadius: 999 }}>
                 {part.category.name}

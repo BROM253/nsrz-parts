@@ -10,6 +10,7 @@ import '../core/models.dart';
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/part_image.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -94,7 +95,7 @@ class _CartLineTile extends ConsumerWidget {
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                CategoryIcon(p.categoryIcon, size: 42),
+                PartImage(url: p.imageUrl, icon: p.categoryIcon, height: 54, width: 72, radius: 10),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

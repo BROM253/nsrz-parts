@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Cart, OrderDetail } from '../../api/types';
-import { ease, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
+import { ease, PartImage, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
 import { ago, fmtDateTime, money } from '../../format';
 
 export function OrderInfo({ order }: { order: OrderDetail }) {
@@ -154,10 +154,13 @@ export default function OrderPage() {
               {
                 title: 'Запчасть',
                 render: (_, i) => (
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{i.name}</div>
-                    <div className="mono faint" style={{ fontSize: 12.5 }}>
-                      {i.catalogNumber}
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <PartImage src={i.imageUrl} alt={i.name} height={48} radius={10} style={{ width: 64 }} />
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{i.name}</div>
+                      <div className="mono faint" style={{ fontSize: 12.5 }}>
+                        {i.catalogNumber}
+                      </div>
                     </div>
                   </div>
                 ),

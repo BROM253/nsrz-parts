@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/farewell.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -69,7 +70,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
-          onPressed: () => ref.read(sessionProvider.notifier).signOut(),
+          onPressed: () => signOutWithFarewell(context, ref),
           icon: const Icon(Icons.logout_rounded, color: C.danger),
           label: const Text('Выйти', style: TextStyle(color: C.danger)),
           style: OutlinedButton.styleFrom(side: const BorderSide(color: C.danger)),

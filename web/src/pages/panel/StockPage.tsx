@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { api, ApiError } from '../../api/client';
 import { useDictionaries } from '../../api/hooks';
 import type { Availability, Page, Part } from '../../api/types';
-import { AvailabilityBadge, ease } from '../../components/ui';
+import { AvailabilityBadge, ease, PartImage } from '../../components/ui';
 import { ago, fmtDateTime } from '../../format';
 
 interface StockPage extends Page<Part> {
@@ -122,7 +122,7 @@ export default function StockPage() {
           pagination={{ current: page, pageSize: 25, total: data?.total, onChange: setPage, showSizeChanger: false }}
           columns={[
             { title: 'Номер', width: 170, render: (_, p) => <span className="mono">{p.catalogNumber}</span> },
-            { title: 'Наименование', render: (_, p) => <div><div style={{ fontWeight: 600 }}>{p.name}</div><div className="faint" style={{ fontSize: 12.5 }}>{p.category.name}</div></div> },
+            { title: 'Наименование', render: (_, p) => <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}><PartImage src={p.imageUrl} icon={p.category.icon} alt={p.name} height={42} radius={8} style={{ width: 56 }} /><div><div style={{ fontWeight: 600 }}>{p.name}</div><div className="faint" style={{ fontSize: 12.5 }}>{p.category.name}</div></div></div> },
             {
               title: 'На складе',
               width: 130,

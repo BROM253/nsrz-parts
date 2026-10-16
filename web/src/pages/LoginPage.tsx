@@ -216,6 +216,7 @@ export default function LoginPage() {
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease }}>
             Найдите деталь по номеру или названию, проверьте наличие на складе Новороссийского судоремонтного завода и отправьте заказ без писем и звонков.
           </motion.p>
+          <motion.img className="login-port" src="/img/port.svg" alt="Порт Новороссийска: судно у причала" initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25, duration: 0.9, ease }} />
         </div>
         <PhoneQr />
         <Waves className="hero-waves" color="#FFE7D2" />

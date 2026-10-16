@@ -33,7 +33,8 @@ const REVALIDATE = 'no-cache';
 
 type CachePolicy = (relPath: string) => string;
 
-const webCache: CachePolicy = (p) => (p.startsWith('/assets/') ? YEAR : REVALIDATE);
+const DAY = 'public, max-age=86400';
+const webCache: CachePolicy = (p) => (p.startsWith('/assets/') ? YEAR : p.startsWith('/img/') ? DAY : REVALIDATE);
 // движок CanvasKit и шрифты меняются только с версией Flutter; main.dart.js — при каждой сборке
 const mobileCache: CachePolicy = (p) => (p.startsWith('/canvaskit/') || p.startsWith('/assets/fonts/') || p.startsWith('/icons/') ? MONTH : REVALIDATE);
 

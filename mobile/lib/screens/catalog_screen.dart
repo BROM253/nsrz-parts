@@ -12,6 +12,8 @@ import '../core/models.dart';
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/fly_to_cart.dart';
+import '../widgets/part_image.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   const CatalogScreen({super.key});
@@ -225,12 +227,14 @@ class PartCard extends ConsumerStatefulWidget {
 class _PartCardState extends ConsumerState<PartCard> {
   bool _busy = false;
   bool _added = false;
+  final _imageKey = GlobalKey();
 
   Future<void> _quickAdd() async {
     setState(() => _busy = true);
     try {
       await ref.read(cartProvider.notifier).add(widget.part.id, 1);
       HapticFeedback.lightImpact();
+      if (mounted) flyToCart(context, from: _imageKey, imageUrl: widget.part.imageUrl, icon: widget.part.categoryIcon);
       setState(() => _added = true);
       Future.delayed(const Duration(milliseconds: 1600), () {
         if (mounted) setState(() => _added = false);
@@ -249,20 +253,18 @@ class _PartCardState extends ConsumerState<PartCard> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/part/${p.id}'),
-        child: Padding(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // картинка «перелетает» на экран детали (Hero) и в корзину (flyToCart)
+          Hero(
+            tag: 'part-img-${p.id}',
+            child: KeyedSubtree(key: _imageKey, child: PartImage(url: p.imageUrl, icon: p.categoryIcon, height: 168, radius: 0)),
+          ),
+          Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Hero(tag: 'part-icon-${p.id}', child: CategoryIcon(p.categoryIcon)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(p.categoryName, style: const TextStyle(color: C.text3, fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
-                  Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, height: 1.25)),
-                ]),
-              ),
-            ]),
+            Text(p.categoryName, style: const TextStyle(color: C.text3, fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 2),
+            Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, height: 1.25)),
             const SizedBox(height: 10),
             Text(p.catalogNumber, style: mono.copyWith(fontSize: 13, color: C.text2)),
             if (p.manufacturerPartNumber != null) Text(p.manufacturerPartNumber!, style: mono.copyWith(fontSize: 13, color: C.text3)),
@@ -297,7 +299,8 @@ class _PartCardState extends ConsumerState<PartCard> {
               ),
             ]),
           ]),
-        ),
+          ),
+        ]),
       ),
     );
   }

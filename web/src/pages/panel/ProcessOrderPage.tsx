@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import { useDictionaries } from '../../api/hooks';
 import type { OrderDetail, OrderStatus } from '../../api/types';
-import { AvailabilityBadge, ease, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
+import { AvailabilityBadge, ease, PartImage, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
 import { fmtDateTime, money } from '../../format';
 import { OrderInfo } from '../client/OrderPage';
 
@@ -126,7 +126,7 @@ export default function ProcessOrderPage() {
             pagination={false}
             dataSource={order.items}
             columns={[
-              { title: 'Запчасть', render: (_, i) => <div><div style={{ fontWeight: 600 }}>{i.name}</div><div className="mono faint" style={{ fontSize: 12.5 }}>{i.catalogNumber}</div></div> },
+              { title: 'Запчасть', render: (_, i) => <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}><PartImage src={i.imageUrl} alt={i.name} height={42} radius={8} style={{ width: 56 }} /><div><div style={{ fontWeight: 600 }}>{i.name}</div><div className="mono faint" style={{ fontSize: 12.5 }}>{i.catalogNumber}</div></div></div> },
               { title: 'В заказе', align: 'right', render: (_, i) => <b>{i.quantity} {i.unit}</b> },
               {
                 title: 'Склад',

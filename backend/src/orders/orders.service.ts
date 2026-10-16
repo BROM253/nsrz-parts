@@ -387,6 +387,7 @@ export class OrdersService {
       name: i.part.name,
       catalogNumber: i.part.catalogNumber,
       manufacturerPartNumber: i.part.manufacturerPartNumber,
+      imageUrl: i.part.imageUrl,
       unit: i.part.unit,
       quantity: i.quantity,
       price: money(i.price),

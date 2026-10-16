@@ -1,6 +1,6 @@
 import { Tag } from 'antd';
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'motion/react';
-import { ReactNode, Suspense, useEffect, useRef } from 'react';
+import { ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import type { OrderStatus, StockView } from '../api/types';
 import { fmtDateTime } from '../format';
@@ -222,9 +222,37 @@ export const itemVariants = {
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease } },
 };
 
-/** Сообщить шапке, что деталь добавлена: от этой кнопки к корзине полетит точка. */
-export function flyToCart(from: Element | null) {
+/** Сообщить шапке, что деталь добавлена: картинка товара полетит от этого места к корзине. */
+export function flyToCart(from: Element | null, image?: string | null, quantity = 1) {
   if (!from) return;
   const r = from.getBoundingClientRect();
-  window.dispatchEvent(new CustomEvent('nsrz:fly', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 } }));
+  window.dispatchEvent(new CustomEvent('nsrz:fly', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2, image, quantity } }));
+}
+
+/** Картинка детали: плавно проявляется после загрузки; если картинки нет — значок категории. */
+export function PartImage({ src, icon, alt, height, radius = 14, zoom = false, style }: { src?: string | null; icon?: string | null; alt: string; height: number | string; radius?: number; zoom?: boolean; style?: React.CSSProperties }) {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  return (
+    <div className={zoom ? 'part-img zoom' : 'part-img'} style={{ height, borderRadius: radius, ...style }}>
+      {!src || failed ? (
+        <div style={{ height: '100%', display: 'grid', placeItems: 'center' }}>
+          <CategoryIcon icon={icon} big />
+        </div>
+      ) : (
+        <motion.img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          initial={{ opacity: 0, scale: 1.06 }}
+          animate={loaded ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 0.45, ease }}
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  );
 }

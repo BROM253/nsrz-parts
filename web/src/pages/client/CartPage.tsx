@@ -3,7 +3,7 @@ import { Button, Empty } from 'antd';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart, useCartActions } from '../../api/hooks';
-import { AvailabilityBadge, CategoryIcon, ease, Skeleton, Stepper } from '../../components/ui';
+import { AvailabilityBadge, ease, PartImage, Skeleton, Stepper } from '../../components/ui';
 import { money, plural } from '../../format';
 
 export function Steps({ step }: { step: 1 | 2 | 3 }) {
@@ -79,7 +79,7 @@ export default function CartPage() {
                 style={{ padding: 18, borderColor: line.problem ? 'var(--danger)' : undefined }}
               >
                 <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <CategoryIcon icon={line.part.category.icon} />
+                  <PartImage src={line.part.imageUrl} icon={line.part.category.icon} alt={line.part.name} height={72} radius={12} style={{ width: 96 }} />
                   <div style={{ flex: 1, minWidth: 220 }}>
                     <Link to={`/parts/${line.part.id}`} style={{ color: 'var(--text)', fontWeight: 650, fontSize: 16 }}>
                       {line.part.name}
