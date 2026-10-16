@@ -129,12 +129,15 @@ async function desktop(who) {
   await phone(`/order/${orders.items[0].id}`, 'app-order');
   await api('/api/cart', { token: owner.accessToken, method: 'DELETE' });
 
-  // страница /app для Android (по QR-коду со страницы входа)
-  const ctx = await browser.newContext({ ...devices['Pixel 7'], locale: 'ru-RU' });
+  // страница /app для Android (по QR-коду со страницы входа) — с рабочего адреса: на ней написан адрес сервера,
+  // и в инструкции он должен быть настоящим, а не адресом QA-стенда. Страница только для чтения.
+  const PROD = process.env.PROD_URL ?? 'https://your-subdomain.a.tuna.free';
+  const ctx = await browser.newContext({ ...devices['Pixel 7'], deviceScaleFactor: 2, locale: 'ru-RU' });
   const page = await ctx.newPage();
-  await page.goto(BASE + '/app');
-  await page.locator('a[href*=".apk"]').first().waitFor();
-  await shot(page, 'app-download', { wait: 1200 });
+  await page.goto(PROD + '/app', { timeout: 120_000 });
+  if ((await page.title()) === 'Требуется подтверждение') await page.getByRole('button', { name: 'Посетить' }).click();
+  await page.locator('a[href*=".apk"]').first().waitFor({ timeout: 120_000 });
+  await shot(page, 'app-download', { wait: 1500, shot: { fullPage: true } });
   await ctx.close();
 }
 
