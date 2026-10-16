@@ -12,7 +12,7 @@
 | Сервер (API) | `backend/` | NestJS 11 (TypeScript), Prisma 6, PostgreSQL 16, JWT + роли, Swagger |
 | Сайт для ПК: кабинет судовладельца и панель НСРЗ | `web/` | React 18, Ant Design 5, Motion (анимации), TanStack Query |
 | Мобильное приложение (Android и iPhone) | `mobile/` | Flutter 3.47 (Dart), Riverpod, go_router, flutter_animate |
-| Скрипты запуска | `scripts/`, `start-server.cmd` | PowerShell, Cloudflare Tunnel |
+| Скрипты запуска | `scripts/`, `start-server.cmd` | PowerShell, туннель tuna (запасные — Cloudflare, tunnelmole, localhost.run, serveo) |
 | Протокол тестирования | `docs/` | — |
 
 Один сервер раздаёт всё сразу:
@@ -54,9 +54,9 @@
 1. В PowerShell: `winget install --id yuccastream.tuna`, затем закрыть и открыть PowerShell заново.
 2. `tuna login` — откроется сайт tuna.am: зарегистрироваться и разрешить доступ.
 3. В личном кабинете tuna.am взять бесплатный постоянный поддомен.
-4. Записать его в файл `data	una-subdomain.txt` (имя или полный адрес — скрипт разберётся).
+4. Записать его в файл `data\tuna-subdomain.txt` (имя или полный адрес — скрипт разберётся).
 5. Запустить `start-server.cmd` — адрес станет постоянным: `https://<поддомен>.a.tuna.free`.
-6. Пересобрать APK с этим адресом: `powershell -ExecutionPolicy Bypass -File scriptsuild-apk.ps1` — приложение будет сразу знать, куда подключаться.
+6. Пересобрать APK с этим адресом: `powershell -ExecutionPolicy Bypass -File scripts\build-apk.ps1` — приложение будет сразу знать, куда подключаться.
 
 ## Демо-доступ
 
@@ -121,11 +121,11 @@ cd backend && npm run db:studio     # посмотреть таблицы БД �
 cd web && npm run build                                                   # сайт → web/dist
 cd backend && npm run build                                               # сервер → backend/dist
 cd mobile && flutter build web --release --base-href /m/ --no-web-resources-cdn  # для iPhone
-cd mobile && flutter build apk --release                                 # Android → release/nsrz-parts.apk
+powershell -ExecutionPolicy Bypass -File scripts\build-apk.ps1            # Android → release/nsrz-parts.apk (+ armv7)
 ```
 
 ## Ограничения версии 1.0
 
 - **iOS:** нативную сборку без Mac не подписать. На iPhone работает веб-версия того же Flutter-приложения, которая ставится на экран «Домой». Папка `mobile/ios` готова для сборки на Mac.
-- **Туннель:** бесплатный адрес Cloudflare меняется при каждом запуске. Для постоянного адреса нужен свой домен или облачный сервер (этап 2).
+- **Сервер на домашнем ПК:** сайт и приложение доступны, только пока ПК включён и запущен `start-server.cmd`. Адрес tuna постоянный, но канал до дома узкий. Для работы 24/7 нужен облачный сервер (этап 2).
 - По плану второго этапа: интеграция с ERP по API, Redis-очереди, Docker, CI/CD, мониторинг.
