@@ -20,6 +20,8 @@ const ProcessOrderPage = lazy(() => import('./pages/panel/ProcessOrderPage'));
 const QueuePage = lazy(() => import('./pages/panel/QueuePage'));
 const StatsPage = lazy(() => import('./pages/panel/StatsPage'));
 const StockPage = lazy(() => import('./pages/panel/StockPage'));
+const SupportPage = lazy(() => import('./pages/panel/SupportPage'));
+const MonitoringPage = lazy(() => import('./pages/panel/MonitoringPage'));
 
 export const PageSpinner = () => (
   <div style={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
@@ -62,6 +64,8 @@ export default function App() {
         <Route path="stock" element={<StockPage />} />
         <Route path="stats" element={<StatsPage />} />
         <Route path="admin" element={<AdminPage />} />
+        <Route path="support" element={<SupportPage />} />
+        <Route path="monitoring" element={<MonitoringPage />} />
       </Route>
       <Route
         path="/"

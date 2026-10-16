@@ -12,7 +12,7 @@ export const partImageUrl = (mpn: string) => `/img/parts/${mpn.toLowerCase().rep
 /** Полностью пересоздаёт демо-данные. Используется командой `npm run db:seed` и автотестами. */
 export async function seed(prisma: PrismaClient) {
   await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE notifications, refresh_tokens, auth_codes, order_status_history, order_items, orders,
+    `TRUNCATE TABLE support_tickets, notifications, refresh_tokens, auth_codes, order_status_history, order_items, orders,
        cart_items, stock_imports, stock, part_vessel_types, parts, part_categories, vessels, vessel_types,
        users, companies RESTART IDENTITY CASCADE`,
   );
@@ -154,6 +154,33 @@ export async function seed(prisma: PrismaClient) {
       },
     });
     await prisma.order.update({ where: { id: order.id }, data: { number: orderNumber(order.id), updatedAt: lastAt } });
+  }
+
+  // обращения в техподдержку (этап 7): решённое, в работе и новое — чтобы в панели было что показать
+  const owner = async (key: string) => prisma.user.findUniqueOrThrow({ where: { id: users.get(key)! } });
+  const firstOrder = await prisma.order.findFirst({ where: { userId: users.get('owner1') }, orderBy: { id: 'asc' } });
+  const tickets = [
+    { user: 'owner1', category: 'ORDER', order: firstOrder?.id, hoursAgo: 70, status: 'RESOLVED', platform: 'android', message: 'Можно ли доставить заказ к борту не в Новороссийске, а в Туапсе?', reply: 'Да, выберите способ «Транспортная компания» — отдел продаж согласует срок и стоимость доставки в Туапсе.' },
+    { user: 'owner2', category: 'IDEA', hoursAgo: 26, status: 'IN_PROGRESS', platform: 'iphone', message: 'Хотелось бы получать push-уведомление о смене статуса, а не только SMS.' },
+    { user: 'owner3', category: 'QUESTION', hoursAgo: 2, status: 'NEW', platform: 'web', message: 'Как добавить в профиль новое судно компании? Его нет в списке при оформлении.' },
+  ] as const;
+  for (const t of tickets) {
+    const author = await owner(t.user);
+    const createdAt = new Date(now - t.hoursAgo * HOUR);
+    await prisma.supportTicket.create({
+      data: {
+        userId: author.id,
+        companyId: author.companyId,
+        orderId: 'order' in t ? (t.order ?? null) : null,
+        category: t.category,
+        message: t.message,
+        status: t.status,
+        platform: t.platform,
+        appVersion: '1.1.0',
+        createdAt,
+        ...('reply' in t ? { reply: t.reply, repliedById: users.get('sales'), repliedAt: new Date(createdAt.getTime() + 1.5 * HOUR) } : {}),
+      },
+    });
   }
 
   return { users, parts, vessels, companies };

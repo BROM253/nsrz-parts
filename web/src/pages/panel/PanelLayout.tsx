@@ -1,4 +1,4 @@
-import { BarChartOutlined, DatabaseOutlined, InboxOutlined, TeamOutlined } from '@ant-design/icons';
+import { BarChartOutlined, CustomerServiceOutlined, DashboardOutlined, DatabaseOutlined, InboxOutlined, TeamOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { App, Avatar, Badge, Layout, Menu } from 'antd';
 import { useEffect, useRef } from 'react';
@@ -9,12 +9,15 @@ import { useAuth } from '../../auth';
 import { LogoutButton } from '../../components/LogoutButton';
 import { AnimatedOutlet, Logo } from '../../components/ui';
 import { ROLE_TITLES } from '../../format';
+import { useSupportQueue } from './SupportPage';
 
 const TITLES: Record<string, string> = {
   '/panel': 'Очередь заказов',
   '/panel/stock': 'Остатки на складе',
   '/panel/stats': 'Статистика заказов',
   '/panel/admin': 'Пользователи и справочники',
+  '/panel/support': 'Обращения пользователей',
+  '/panel/monitoring': 'Мониторинг системы',
 };
 
 export function usePendingQueue() {
@@ -32,6 +35,8 @@ export default function PanelLayout() {
   const { notification } = App.useApp();
   const { data } = usePendingQueue();
   const pending = data?.counts.PENDING ?? 0;
+  const { data: support } = useSupportQueue();
+  const newTickets = support?.counts.NEW ?? 0;
   const known = useRef<Set<number> | null>(null);
 
   // всплывающее уведомление о новом заказе
@@ -85,7 +90,17 @@ export default function PanelLayout() {
             },
             { key: '/panel/stock', icon: <DatabaseOutlined />, label: 'Остатки на складе' },
             { key: '/panel/stats', icon: <BarChartOutlined />, label: 'Статистика' },
+            {
+              key: '/panel/support',
+              icon: <CustomerServiceOutlined />,
+              label: (
+                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  Обращения <Badge count={newTickets} color="#8A5208" />
+                </span>
+              ),
+            },
             { key: '/panel/admin', icon: <TeamOutlined />, label: 'Пользователи и справочники' },
+            ...(user?.role === 'ADMIN' ? [{ key: '/panel/monitoring', icon: <DashboardOutlined />, label: 'Мониторинг' }] : []),
           ]}
         />
       </Layout.Sider>

@@ -12,7 +12,9 @@ import { NotificationsModule } from './notifications/notifications.service';
 import { OrdersModule } from './orders/orders.controller';
 import { PrismaModule } from './prisma/prisma.service';
 import { StatsModule } from './stats/stats.controller';
+import { MonitoringModule } from './monitoring/monitoring.controller';
 import { StockModule } from './stock/stock.controller';
+import { SupportModule } from './support/support.controller';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { StockModule } from './stock/stock.controller';
     StatsModule,
     AdminModule,
     HealthModule,
+    MonitoringModule,
+    SupportModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

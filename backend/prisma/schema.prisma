@@ -15,31 +15,31 @@ datasource db {
 }
 
 enum Role {
-  OWNER     // судовладелец / судоходная компания
-  SALES     // сотрудник отдела продаж НСРЗ
+  OWNER // судовладелец / судоходная компания
+  SALES // сотрудник отдела продаж НСРЗ
   WAREHOUSE // сотрудник склада НСРЗ
-  ADMIN     // администратор системы
+  ADMIN // администратор системы
 }
 
 enum Availability {
-  IN_STOCK     // в наличии
-  ON_ORDER     // под заказ
+  IN_STOCK // в наличии
+  ON_ORDER // под заказ
   OUT_OF_STOCK // нет на складе
 }
 
 enum OrderStatus {
-  PENDING    // ожидает подтверждения
-  CONFIRMED  // подтверждён
+  PENDING // ожидает подтверждения
+  CONFIRMED // подтверждён
   ASSEMBLING // комплектуется
-  READY      // готов к выдаче или отправлен
-  COMPLETED  // завершён
-  REJECTED   // отклонён
+  READY // готов к выдаче или отправлен
+  COMPLETED // завершён
+  REJECTED // отклонён
 }
 
 enum DeliveryMethod {
-  PICKUP   // самовывоз со склада НСРЗ
+  PICKUP // самовывоз со склада НСРЗ
   TO_BOARD // доставка к борту судна
-  CARRIER  // транспортная компания
+  CARRIER // транспортная компания
 }
 
 enum NotificationChannel {
@@ -48,7 +48,7 @@ enum NotificationChannel {
 }
 
 enum NotificationStatus {
-  SENT   // отправлено через внешний сервис
+  SENT // отправлено через внешний сервис
   LOGGED // демо-режим: записано в журнал, во внешний сервис не уходило
   FAILED
 }
@@ -63,6 +63,7 @@ model Company {
   users   User[]
   vessels Vessel[]
   orders  Order[]
+  tickets SupportTicket[]
 
   @@map("companies")
 }
@@ -84,6 +85,8 @@ model User {
   stockImports  StockImport[]
   stockUpdates  Stock[]
   refreshTokens RefreshToken[]
+  tickets       SupportTicket[]      @relation("TicketAuthor")
+  ticketReplies SupportTicket[]      @relation("TicketReplier")
 
   @@map("users")
 }
@@ -136,7 +139,7 @@ model Part {
   searchKey              String   @map("search_key")
   // наименование и описание в нижнем регистре (ё → е) — поиск по словам не зависит от локали БД
   searchText             String   @map("search_text")
-  categoryId            Int      @map("category_id")
+  categoryId             Int      @map("category_id")
   price                  Decimal  @db.Decimal(12, 2)
   unit                   String   @default("шт.")
   leadTimeDays           Int      @default(0) @map("lead_time_days")
@@ -230,6 +233,7 @@ model Order {
   items         OrderItem[]
   statusHistory OrderStatusHistory[]
   notifications Notification[]
+  tickets       SupportTicket[]
 
   @@index([vesselId, createdAt])
   @@index([companyId, createdAt])
@@ -313,4 +317,44 @@ model Notification {
 
   @@index([createdAt])
   @@map("notifications")
+}
+
+/// Обращение в техподдержку (этап 7): вопрос, ошибка, вопрос по заказу или предложение по развитию.
+enum SupportCategory {
+  QUESTION
+  BUG
+  ORDER
+  IDEA
+}
+
+enum SupportStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+}
+
+model SupportTicket {
+  id          Int             @id @default(autoincrement())
+  userId      String          @map("user_id") @db.Uuid
+  companyId   String?         @map("company_id") @db.Uuid
+  orderId     Int?            @map("order_id")
+  category    SupportCategory
+  message     String
+  status      SupportStatus   @default(NEW)
+  reply       String?
+  repliedById String?         @map("replied_by_id") @db.Uuid
+  repliedAt   DateTime?       @map("replied_at")
+  platform    String? // android / iphone / web
+  appVersion  String?         @map("app_version")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  user      User     @relation("TicketAuthor", fields: [userId], references: [id])
+  repliedBy User?    @relation("TicketReplier", fields: [repliedById], references: [id])
+  company   Company? @relation(fields: [companyId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("support_tickets")
 }

@@ -34,6 +34,7 @@ Step 3 'Сборка сайта и сервера'
 Run 'Сборка сайта' 'npm run build' (Join-Path $root 'web') 'deploy-web.log'
 $server = Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'dist[\\/]main\.js' -and $_.CommandLine -notmatch 'dist-qa' }
 if ($server) { $server | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }; Start-Sleep -Milliseconds 800; Write-Host '  рабочий сервер остановлен' }
+Run 'Клиент базы данных' 'npx prisma generate' $backend 'deploy-generate.log'
 Run 'Сборка сервера' 'npx nest build' $backend 'deploy-build.log'
 
 Step 4 'Миграции базы данных'

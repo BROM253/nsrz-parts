@@ -6,6 +6,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useCart, useDictionaries } from '../../api/hooks';
 import { useAuth } from '../../auth';
 import { LogoutButton } from '../../components/LogoutButton';
+import { HelpButton } from '../../components/Support';
 import { AnimatedOutlet, ease, Logo, SyncPill } from '../../components/ui';
 
 const LINKS = [
@@ -143,6 +144,7 @@ export default function ClientLayout() {
             })}
           </nav>
           <CartButton />
+          <HelpButton />
           <Tooltip title={`${user?.fullName ?? ''} · профиль и суда`}>
             <Link to="/profile" aria-label="Профиль">
               <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}>

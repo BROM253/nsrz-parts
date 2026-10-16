@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../core/providers.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/farewell.dart';
+import 'support_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -60,6 +62,16 @@ class ProfileScreen extends ConsumerWidget {
           child: Text('Чтобы добавить судно или сотрудника, напишите в отдел продаж НСРЗ.', style: TextStyle(color: C.text3, fontSize: 13)),
         ),
         const SizedBox(height: 20),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.support_agent_rounded, color: C.primary),
+            title: const Text('Помощь и обратная связь', style: TextStyle(fontWeight: FontWeight.w700)),
+            subtitle: const Text('Вопрос, ошибка, предложение · мои обращения'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => context.push('/support'),
+          ),
+        ).animate().fadeIn(delay: 150.ms),
+        const SizedBox(height: 12),
         if (!kIsWeb)
           Card(
             child: ListTile(
@@ -76,7 +88,7 @@ class ProfileScreen extends ConsumerWidget {
           style: OutlinedButton.styleFrom(side: const BorderSide(color: C.danger)),
         ),
         const SizedBox(height: 16),
-        const Center(child: Text('НСРЗ · Заказ запчастей, версия 1.0.0', style: TextStyle(color: C.text3, fontSize: 12))),
+        const Center(child: Text('НСРЗ · Заказ запчастей, версия $appVersion', style: TextStyle(color: C.text3, fontSize: 12))),
       ]),
     );
   }

@@ -13,6 +13,7 @@ import '../screens/orders_screen.dart';
 import '../screens/part_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/splash_screen.dart';
+import '../screens/support_screen.dart';
 import 'providers.dart';
 
 /// Переход «общая ось»: новый экран мягко выезжает справа с затуханием.
@@ -80,6 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/part/:id', pageBuilder: (_, s) => _axis(s, PartScreen(id: int.parse(s.pathParameters['id']!)))),
       GoRoute(path: '/checkout', pageBuilder: (_, s) => _axis(s, const CheckoutScreen())),
+      GoRoute(path: '/support', pageBuilder: (_, s) => _axis(s, const SupportScreen())),
       GoRoute(path: '/order/:id', pageBuilder: (_, s) => _axis(s, OrderScreen(id: int.parse(s.pathParameters['id']!)))),
     ],
   );

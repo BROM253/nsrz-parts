@@ -1,4 +1,5 @@
 import { Avatar } from 'antd';
+import { MyTickets } from '../../components/Support';
 import { motion } from 'motion/react';
 import { useAuth } from '../../auth';
 import { LogoutButton } from '../../components/LogoutButton';
@@ -45,6 +46,9 @@ export default function ProfilePage() {
       <p className="faint" style={{ marginTop: 20, fontSize: 13.5 }}>
         Чтобы добавить судно или сотрудника, напишите в отдел продаж НСРЗ — администратор подключит их в системе.
       </p>
+
+      <h3 style={{ marginTop: 28 }}>Мои обращения</h3>
+      <MyTickets />
     </div>
   );
 }

@@ -160,6 +160,20 @@ await check('S-14', 'Защита: без входа — 401, судовладе
   assert((await json('/api/orders')).status === 401, 'без входа данные доступны');
   assert((await json('/api/panel/orders', owner.accessToken)).status === 403, 'судовладелец попал в панель');
 });
+await check('S-15', 'Поддержка: «Мои обращения» у судовладельца, очередь обращений у сотрудника', async () => {
+  const mine = await json('/api/support', owner.accessToken);
+  assert(mine.status === 200 && Array.isArray(mine.body), `мои обращения: ${mine.status}`);
+  const queue = await json('/api/panel/support?status=OPEN', staff.accessToken);
+  assert(queue.status === 200 && queue.body.counts, `очередь обращений: ${queue.status}`);
+  return `открытых обращений: ${queue.body.counts.NEW + queue.body.counts.IN_PROGRESS}`;
+});
+await check('S-16', 'Мониторинг: сводка для администратора, база и копия в порядке', async () => {
+  const admin = await login('admin@nsrz.ru');
+  const m = await json('/api/admin/monitoring', admin.accessToken);
+  assert(m.status === 200 && m.body.db.ok, `мониторинг: ${m.status}`);
+  assert(m.body.backup.ageHours !== null && m.body.backup.ageHours < 25, 'резервная копия старше суток');
+  return `статус ${m.body.status}, p95 за час ${m.body.hour.p95} мс`;
+});
 
 // ── Браузеры ─────────────────────────────────────────────────────
 /**
@@ -174,7 +188,7 @@ async function passTunaWarning(page) {
 }
 
 if (!API_ONLY) {
-  await check('S-15', 'Сайт в браузере (Edge): вход по демо-кнопке → каталог → выход', async () => {
+  await check('S-17', 'Сайт в браузере (Edge): вход по демо-кнопке → каталог → выход', async () => {
     const browser = await chromium.launch({ channel: 'msedge' });
     try {
       const page = await browser.newPage({ locale: 'ru-RU' });
@@ -191,7 +205,7 @@ if (!API_ONLY) {
       await browser.close();
     }
   });
-  await check('S-16', 'Приложение на iPhone (Safari, эмуляция iPhone 13): /m/ запускается', async () => {
+  await check('S-18', 'Приложение на iPhone (Safari, эмуляция iPhone 13): /m/ запускается', async () => {
     const browser = await webkit.launch();
     try {
       const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'ru-RU' });
@@ -205,7 +219,7 @@ if (!API_ONLY) {
       await browser.close();
     }
   });
-  await check('S-17', 'Телефон на Android (эмуляция Pixel 7): страница /app со ссылкой на APK', async () => {
+  await check('S-19', 'Телефон на Android (эмуляция Pixel 7): страница /app со ссылкой на APK', async () => {
     const browser = await chromium.launch({ channel: 'msedge' });
     try {
       const ctx = await browser.newContext({ ...devices['Pixel 7'], locale: 'ru-RU' });

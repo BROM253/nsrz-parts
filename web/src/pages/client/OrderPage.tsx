@@ -1,4 +1,4 @@
-import { ArrowLeftOutlined, DownloadOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, CustomerServiceOutlined, DownloadOutlined, RedoOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Result, Table } from 'antd';
 import { motion } from 'motion/react';
@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import type { Cart, OrderDetail } from '../../api/types';
+import { SupportDialog } from '../../components/Support';
 import { ease, PartImage, Skeleton, StatusTag, StatusTimeline } from '../../components/ui';
 import { ago, fmtDateTime, money } from '../../format';
 
@@ -36,6 +37,7 @@ export default function OrderPage() {
   const { message, modal, notification } = App.useApp();
   const qc = useQueryClient();
   const [repeating, setRepeating] = useState(false);
+  const [asking, setAsking] = useState(false);
   const { data: order, isLoading, error, dataUpdatedAt, refetch, isFetching } = useQuery({
     queryKey: ['orders', 'one', id],
     queryFn: () => api.get<OrderDetail>(`/orders/${id}`),
@@ -128,6 +130,10 @@ export default function OrderPage() {
             <Button icon={<DownloadOutlined />} onClick={exportCsv}>
               Экспорт в Excel (CSV)
             </Button>
+            <Button type="text" icon={<CustomerServiceOutlined />} onClick={() => setAsking(true)}>
+              Вопрос по заказу
+            </Button>
+            <SupportDialog open={asking} onClose={() => setAsking(false)} order={{ id: order.id, number: order.number }} />
           </div>
         </div>
 

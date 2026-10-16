@@ -139,6 +139,14 @@ if ($url) {
     Write-Host '  Ни один туннель не поднялся. Сайт работает на этом ПК: http://localhost:3000' -ForegroundColor Red
     Write-Host '  Что попробовать: включить или выключить VPN и запустить ещё раз; логи — data\logs\tunnel-*.log'
 }
+
+# Сторож доступности (этап 7): раз в минуту проверяет сервер и адрес в интернете, журнал — data\monitoring
+$monitor = Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'monitor\.mjs' }
+if (-not $monitor) {
+    Start-Process -FilePath 'node' -ArgumentList 'scripts/monitor.mjs' -WorkingDirectory $root -WindowStyle Minimized `
+        -RedirectStandardOutput (Join-Path $logs 'monitor.log') -RedirectStandardError (Join-Path $logs 'monitor-errors.log')
+}
+Write-Host '  Мониторинг доступности работает: панель НСРЗ -> «Мониторинг».'
 Write-Host ''
 Write-Host '  Чтобы остановить сервер — закройте свёрнутые окна (node, cloudflared, ssh) или перезагрузите ПК.'
 Write-Host ''
